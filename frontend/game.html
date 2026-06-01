@@ -146,6 +146,11 @@ function posFromTouch(e) { const t = e.touches[0]; return posFromEl(document.ele
 function ck(r, c) { return `${r},${c}`; }
 
 function isAdjacent(a, b) {
+  // базовая проверка соседства (включая диагональ)
+  return Math.abs(a.r - b.r) <= 1 && Math.abs(a.c - b.c) <= 1 && !(a.r === b.r && a.c === b.c);
+}
+
+function isOrthogonal(a, b) {
   return Math.abs(a.r - b.r) <= 1 && Math.abs(a.c - b.c) <= 1 && !(a.r === b.r && a.c === b.c);
 }
 
@@ -177,7 +182,7 @@ function addToPath(pos) {
   // Проверяем что новая клетка соседняя с последней
   if (curPath.length > 0) {
     const last = curPath[curPath.length - 1];
-    if (!isAdjacent(last, pos)) return;
+    if (!canAddToPath(curPath, pos)) return;
   }
 
   curPath.push(pos);
