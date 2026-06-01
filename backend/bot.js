@@ -58,7 +58,7 @@ export async function handleBotUpdate(update) {
         [{ text: '🔤 Открыть игру', web_app: { url: process.env.WEBAPP_URL } }],
         [{ text: '🔓 Подписка — все дела', web_app: { url: `${process.env.WEBAPP_URL}/subscribe.html` } }],
         [{ text: '❓ Как играть', web_app: { url: `${process.env.WEBAPP_URL}/help.html` } }],
-        [{ text: '📩 Поддержка', url: 'https://t.me/bukvennoe_delo_support' }],
+        [{ text: '📩 Поддержка', url: 'https://t.me/wbsellan' }],
       ]
     }
   });
