@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Буквенное дело — Статистика</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f5f0e8; font-family: 'Georgia', serif; padding: 20px; min-height: 100vh; }
+.header { text-align: center; margin-bottom: 24px; }
+.brand { font-size: 22px; font-weight: bold; letter-spacing: 6px; color: #2c1a0e; border: 3px solid #2c1a0e; display: inline-block; padding: 6px 18px; margin-bottom: 6px; }
+.subtitle { font-size: 12px; letter-spacing: 2px; color: #6b4c2a; text-transform: uppercase; }
+hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 24px; }
+
+.login-box { max-width: 360px; margin: 60px auto; background: #fdf6ec; border: 2px solid #2c1a0e; border-radius: 8px; padding: 24px; text-align: center; }
+.login-box h3 { font-size: 18px; color: #2c1a0e; margin-bottom: 16px; }
+.input { width: 100%; border: 2px solid #2c1a0e; background: #f5f0e8; font-family: 'Georgia',serif; font-size: 15px; color: #2c1a0e; padding: 10px 14px; border-radius: 6px; outline: none; margin-bottom: 12px; }
+.btn { width: 100%; padding: 12px; background: #2c1a0e; color: #f5f0e8; border: none; border-radius: 30px; font-family: 'Georgia',serif; font-size: 15px; font-weight: bold; cursor: pointer; }
+.btn:hover { background: #4a2c14; }
+
+.grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.card { background: #fdf6ec; border: 2px solid #2c1a0e; border-radius: 8px; padding: 16px; text-align: center; }
+.card-val { font-size: 32px; font-weight: bold; color: #2c1a0e; }
+.card-label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #6b4c2a; margin-top: 4px; }
+
+.section { background: #fdf6ec; border: 2px solid #2c1a0e; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+.section h3 { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: #6b4c2a; margin-bottom: 14px; }
+
+.funnel { display: flex; flex-direction: column; gap: 8px; }
+.funnel-row { display: flex; align-items: center; gap: 10px; }
+.funnel-label { font-size: 13px; color: #2c1a0e; width: 160px; flex-shrink: 0; }
+.funnel-bar-wrap { flex: 1; background: #e0d0b0; border-radius: 10px; height: 20px; overflow: hidden; }
+.funnel-bar { height: 100%; background: #2c1a0e; border-radius: 10px; transition: width .6s; min-width: 2px; }
+.funnel-num { font-size: 13px; font-weight: bold; color: #2c1a0e; width: 40px; text-align: right; flex-shrink: 0; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #6b4c2a; padding: 6px 8px; border-bottom: 2px solid #2c1a0e; }
+td { padding: 8px; border-bottom: 1px solid #e0d0b0; color: #2c1a0e; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f0e4cc; }
+
+.refresh-btn { background: transparent; border: 2px solid #2c1a0e; color: #2c1a0e; font-family: 'Georgia',serif; font-size: 13px; padding: 6px 16px; border-radius: 20px; cursor: pointer; margin-bottom: 20px; }
+.refresh-btn:hover { background: #2c1a0e; color: #f5f0e8; }
+
+.loading { text-align: center; padding: 40px; color: #6b4c2a; }
+.error { text-align: center; padding: 20px; color: #b71c1c; background: #ffcdd2; border-radius: 8px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">БУКВЕННОЕ ДЕЛО</div>
+  <div class="subtitle">Панель статистики</div>
+</div>
+<hr>
+
+<div id="app">
+  <div class="login-box">
+    <h3>🔐 Вход</h3>
+    <input class="input" type="password" id="keyInput" placeholder="Введи admin key" onkeydown="if(event.key==='Enter')login()">
+    <button class="btn" onclick="login()">Войти</button>
+  </div>
+</div>
+
+<script>
+const BASE_URL = 'https://inspiring-friendship-production-bf42.up.railway.app';
+let ADMIN_KEY = '';
+
+function login() {
+  const key = document.getElementById('keyInput').value.trim();
+  if (!key) return;
+  ADMIN_KEY = key;
+  loadDashboard();
+}
+
+async function loadDashboard() {
+  document.getElementById('app').innerHTML = '<div class="loading">📊 Загружаем статистику...</div>';
+  try {
+    const res = await fetch(`${BASE_URL}/api/analytics/dashboard`, {
+      headers: { 'x-admin-key': ADMIN_KEY }
+    });
+    if (res.status === 403) {
+      document.getElementById('app').innerHTML = `
+        <div class="error">❌ Неверный ключ</div>
+        <div class="login-box">
+          <h3>🔐 Вход</h3>
+          <input class="input" type="password" id="keyInput" placeholder="Введи admin key" onkeydown="if(event.key==='Enter')login()">
+          <button class="btn" onclick="login()">Войти</button>
+        </div>`;
+      return;
+    }
+    const data = await res.json();
+    renderDashboard(data);
+  } catch(e) {
+    document.getElementById('app').innerHTML = `<div class="error">❌ Ошибка загрузки: ${e.message}</div>`;
+  }
+}
+
+function renderDashboard(data) {
+  const t = data.totals;
+  const f = data.funnel;
+  const maxFunnel = Math.max(+f.bot_start||1, 1);
+
+  const funnelRows = [
+    { label: '🤖 Запустили бота',    val: f.bot_start },
+    { label: '📱 Открыли приложение', val: f.app_open },
+    { label: '🎮 Начали игру',        val: f.game_start },
+    { label: '✅ Раскрыли дело',      val: f.game_complete },
+    { label: '💳 Увидели пейволл',    val: f.paywall_shown },
+    { label: '🔓 Оформили подписку',  val: f.subscribed },
+  ].map(r => `
+    <div class="funnel-row">
+      <div class="funnel-label">${r.label}</div>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:${Math.max((+r.val/maxFunnel)*100,2)}%"></div>
+      </div>
+      <div class="funnel-num">${r.val ?? 0}</div>
+    </div>
+  `).join('');
+
+  const topCasesRows = (data.topCases || []).map(c => `
+    <tr>
+      <td>№${c.case_number} ${c.title}</td>
+      <td>${c.started ?? 0}</td>
+      <td>${c.completed ?? 0}</td>
+      <td>${c.started > 0 ? Math.round((c.completed/c.started)*100) : 0}%</td>
+      <td>${c.avg_minutes ?? '—'} мин</td>
+    </tr>
+  `).join('');
+
+  // Последние 7 дней — уникальные пользователи по дням
+  const byDayMap = {};
+  (data.byDay || []).forEach(row => {
+    if (row.event === 'app_open') {
+      byDayMap[row.date] = row.unique_users;
+    }
+  });
+  const last7 = Object.entries(byDayMap).slice(0, 7).map(([date, users]) => `
+    <tr>
+      <td>${new Date(date).toLocaleDateString('ru-RU')}</td>
+      <td>${users}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('app').innerHTML = `
+    <button class="refresh-btn" onclick="loadDashboard()">↻ Обновить</button>
+
+    <div class="grid-4">
+      <div class="card">
+        <div class="card-val">${t.total_users ?? 0}</div>
+        <div class="card-label">Всего пользователей</div>
+      </div>
+      <div class="card">
+        <div class="card-val">${t.new_users_7d ?? 0}</div>
+        <div class="card-label">Новых за 7 дней</div>
+      </div>
+      <div class="card">
+        <div class="card-val">${t.dau ?? 0}</div>
+        <div class="card-label">Активных сегодня</div>
+      </div>
+      <div class="card">
+        <div class="card-val">${t.wau ?? 0}</div>
+        <div class="card-label">Активных за неделю</div>
+      </div>
+      <div class="card">
+        <div class="card-val">${t.total_completions ?? 0}</div>
+        <div class="card-label">Дел раскрыто</div>
+      </div>
+      <div class="card">
+        <div class="card-val">${t.monthly_subs ?? 0}</div>
+        <div class="card-label">Месячных подписок</div>
+      </div>
+      <div class="card">
+        <div class="card-val">${t.lifetime_subs ?? 0}</div>
+        <div class="card-label">Вечных подписок</div>
+      </div>
+      <div class="card">
+        <div class="card-val">${(+t.monthly_subs * 299) + (+t.lifetime_subs * 990)} ₽</div>
+        <div class="card-label">Примерный доход</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>📊 Воронка</h3>
+      <div class="funnel">${funnelRows}</div>
+    </div>
+
+    <div class="section">
+      <h3>🎮 Топ дел</h3>
+      <table>
+        <thead><tr><th>Дело</th><th>Начали</th><th>Раскрыли</th><th>Конверсия</th><th>Среднее время</th></tr></thead>
+        <tbody>${topCasesRows || '<tr><td colspan="5" style="text-align:center;color:#888">Нет данных</td></tr>'}</tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h3>📅 Активность по дням (уникальные пользователи)</h3>
+      <table>
+        <thead><tr><th>Дата</th><th>Пользователей</th></tr></thead>
+        <tbody>${last7 || '<tr><td colspan="2" style="text-align:center;color:#888">Нет данных</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
