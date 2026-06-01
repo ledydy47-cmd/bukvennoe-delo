@@ -69,7 +69,7 @@ const headers = () => ({
 const params  = new URLSearchParams(window.location.search);
 const CASE_ID = params.get('id');
 const IS_GUEST = !tg?.initData;
-const LS_KEY = `progress_case_${CASE_ID}`;
+const LS_KEY = `progress_case_${CASE_ID}_v2`;
 
 const SIZE = 8;
 let GAME_GRID = [], PLACEMENTS = [], SECRET_CELLS = [], WORD_ORDER = [];
