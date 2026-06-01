@@ -20,9 +20,9 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 8px 0; }
 .grid-box { background: #fdf6ec; border: 3px solid #2c1a0e; padding: 8px; margin-bottom: 12px; border-radius: 4px; }
 .grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 3px; user-select: none; }
 .cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: #2c1a0e; cursor: pointer; border-radius: 3px; transition: background .1s; -webkit-tap-highlight-color: transparent; background: #ede0c8; }
-.cell.secret { background: #ffd0d0; color: #7a0000; font-weight: 900; }
 .cell.sel { background: #f0c060 !important; color: #2c1a0e !important; }
 .cell.found { background: #7ec87e; color: #0a3d0a; }
+.cell.secret { background: #ffd0d0; color: #7a0000; font-weight: 900; }
 .words-box { background: #fdf6ec; border: 2px solid #2c1a0e; border-radius: 4px; padding: 12px 14px; margin-bottom: 12px; }
 .words-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #6b4c2a; margin-bottom: 10px; text-align: center; }
 .words-flow { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
@@ -69,7 +69,10 @@ const headers = () => ({
 const params  = new URLSearchParams(window.location.search);
 const CASE_ID = params.get('id');
 const IS_GUEST = !tg?.initData;
-const LS_KEY = `progress_case_${CASE_ID}_v2`;
+const LS_KEY = `progress_case_${CASE_ID}_v3`;
+
+// Очищаем старые ключи
+Object.keys(localStorage).filter(k => k.startsWith('progress_case_') && !k.endsWith('_v3')).forEach(k => localStorage.removeItem(k));
 
 const SIZE = 8;
 let GAME_GRID = [], PLACEMENTS = [], SECRET_CELLS = [], WORD_ORDER = [];
@@ -77,7 +80,9 @@ let ANSWERS = {};
 let foundSet = new Set();
 let hintUsed = false;
 let startTime = Date.now();
-let selecting = false, startPos = null, curSel = [];
+let selecting = false;
+let curPath = []; // путь змейкой — массив {r,c}
+let visitedInPath = new Set();
 
 async function loadProgress() {
   if (IS_GUEST) {
@@ -91,9 +96,9 @@ async function loadProgress() {
 
 async function saveProgress() {
   const data = {
-    found_words:    [...foundSet],
-    hint_used:      hintUsed,
-    answers:        getCurrentAnswers(),
+    found_words: [...foundSet],
+    hint_used: hintUsed,
+    answers: getCurrentAnswers(),
     time_spent_sec: Math.floor((Date.now() - startTime) / 1000),
   };
   if (IS_GUEST) { localStorage.setItem(LS_KEY, JSON.stringify(data)); return; }
@@ -129,75 +134,106 @@ async function trackEvent(event, meta = {}) {
 
 function getCurrentAnswers() {
   return {
-    killer:   document.getElementById('inKiller')?.value ?? '',
-    method:   document.getElementById('inMethod')?.value ?? '',
+    killer: document.getElementById('inKiller')?.value ?? '',
+    method: document.getElementById('inMethod')?.value ?? '',
     location: document.getElementById('inLocation')?.value ?? '',
   };
 }
 
-function gc(r,c) { return document.querySelector(`#grid .cell[data-r="${r}"][data-c="${c}"]`); }
-function posFromEl(el) { if(!el||el.dataset.r===undefined)return null; return{r:+el.dataset.r,c:+el.dataset.c}; }
-function posFromTouch(e) { const t=e.touches[0]; return posFromEl(document.elementFromPoint(t.clientX,t.clientY)); }
+function gc(r, c) { return document.querySelector(`#grid .cell[data-r="${r}"][data-c="${c}"]`); }
+function posFromEl(el) { if (!el || el.dataset.r === undefined) return null; return { r: +el.dataset.r, c: +el.dataset.c }; }
+function posFromTouch(e) { const t = e.touches[0]; return posFromEl(document.elementFromPoint(t.clientX, t.clientY)); }
+function ck(r, c) { return `${r},${c}`; }
 
-function getLine(a,b) {
-  const dr=b.r-a.r, dc=b.c-a.c;
-  if(!dr&&!dc) return[a];
-  const ar=Math.abs(dr), ac=Math.abs(dc);
-  if(ar&&ac&&ar!==ac) return[a];
-  const n=Math.max(ar,ac), sr=dr?dr/ar:0, sc=dc?dc/ac:0;
-  const res=[];
-  for(let i=0;i<=n;i++) res.push({r:a.r+sr*i, c:a.c+sc*i});
-  return res;
+function isAdjacent(a, b) {
+  return Math.abs(a.r - b.r) <= 1 && Math.abs(a.c - b.c) <= 1 && !(a.r === b.r && a.c === b.c);
 }
 
-function highlight() {
+function clearSel() {
+  document.querySelectorAll('.cell.sel').forEach(e => e.classList.remove('sel'));
+}
+
+function highlightPath() {
   clearSel();
-  curSel.forEach(({r,c})=>{ const el=gc(r,c); if(el) el.classList.add('sel'); });
+  curPath.forEach(({ r, c }) => {
+    const el = gc(r, c);
+    if (el && !el.classList.contains('found')) el.classList.add('sel');
+  });
 }
-function clearSel() { document.querySelectorAll('.cell.sel').forEach(e=>e.classList.remove('sel')); }
-function ck(r,c) { return`${r},${c}`; }
 
-function tryMatch(sel) {
-  if(sel.length<2) return;
-  const selKeys  = sel.map(({r,c})=>ck(r,c));
-  const selKeysR = [...selKeys].reverse();
-  for(const p of PLACEMENTS) {
-    if(foundSet.has(p.word)) continue;
-    const wKeys = p.cells.map(([r,c])=>ck(r,c));
-    if(JSON.stringify(wKeys)===JSON.stringify(selKeys)||JSON.stringify(wKeys)===JSON.stringify(selKeysR)) {
+function addToPath(pos) {
+  if (!pos) return;
+  const key = ck(pos.r, pos.c);
+
+  // Если уже в пути — обрезаем до этой точки (разворот назад)
+  const existingIdx = curPath.findIndex(p => ck(p.r, p.c) === key);
+  if (existingIdx !== -1) {
+    const removed = curPath.splice(existingIdx + 1);
+    removed.forEach(p => visitedInPath.delete(ck(p.r, p.c)));
+    highlightPath();
+    return;
+  }
+
+  // Проверяем что новая клетка соседняя с последней
+  if (curPath.length > 0) {
+    const last = curPath[curPath.length - 1];
+    if (!isAdjacent(last, pos)) return;
+  }
+
+  curPath.push(pos);
+  visitedInPath.add(key);
+  highlightPath();
+}
+
+function tryMatch() {
+  if (curPath.length < 2) return;
+  const pathKeys = curPath.map(({ r, c }) => ck(r, c));
+  const pathKeysR = [...pathKeys].reverse();
+
+  for (const p of PLACEMENTS) {
+    if (foundSet.has(p.word)) continue;
+    const wKeys = p.cells.map(([r, c]) => ck(r, c));
+    if (JSON.stringify(wKeys) === JSON.stringify(pathKeys) ||
+        JSON.stringify(wKeys) === JSON.stringify(pathKeysR)) {
       foundSet.add(p.word);
-      p.cells.forEach(([r,c])=>{ const el=gc(r,c); if(el){el.classList.remove('sel');el.classList.add('found');} });
-      document.querySelectorAll(`.chip[data-word="${p.word}"]`).forEach(e=>e.classList.add('crossed'));
-      document.getElementById('prog').style.width=(foundSet.size/PLACEMENTS.length*100)+'%';
+      p.cells.forEach(([r, c]) => {
+        const el = gc(r, c);
+        if (el) { el.classList.remove('sel'); el.classList.add('found'); }
+      });
+      document.querySelectorAll(`.chip[data-word="${p.word}"]`).forEach(e => e.classList.add('crossed'));
+      document.getElementById('prog').style.width = (foundSet.size / PLACEMENTS.length * 100) + '%';
       saveProgress();
-      if(foundSet.size===PLACEMENTS.length) onAllFound();
+      if (foundSet.size === PLACEMENTS.length) onAllFound();
       return;
     }
   }
 }
 
 function onAllFound() {
-  SECRET_CELLS.forEach(([r,c])=>{ const el=gc(r,c); if(el) el.classList.add('secret'); });
-  document.getElementById('note').innerHTML='🎉 Все слова найдены! Красные буквы — последняя подсказка. Собери из них слово — это место преступления!';
+  SECRET_CELLS.forEach(([r, c]) => {
+    const el = gc(r, c);
+    if (el) el.classList.add('secret');
+  });
+  document.getElementById('note').innerHTML = '🎉 Все слова найдены! Красные буквы — последняя подсказка. Собери из них слово — это место преступления!';
 }
 
 function useHint() {
-  if(hintUsed) return;
+  if (hintUsed) return;
   hintUsed = true;
   document.getElementById('hintBtn').disabled = true;
   document.getElementById('hintBtn').textContent = '💡 Подсказка использована';
   trackEvent('hint_used');
   saveProgress();
-  const notFound = PLACEMENTS.find(p=>!foundSet.has(p.word));
-  if(notFound) {
-    const [r,c] = notFound.cells[0];
-    const el = gc(r,c);
-    if(el) { el.style.background='#ffd54f'; el.style.color='#2c1a0e'; }
-    if(tg) tg.showAlert(`💡 Подсказка: слово "${notFound.word}" начинается здесь`);
+  const notFound = PLACEMENTS.find(p => !foundSet.has(p.word));
+  if (notFound) {
+    const [r, c] = notFound.cells[0];
+    const el = gc(r, c);
+    if (el) { el.style.background = '#ffd54f'; el.style.color = '#2c1a0e'; }
+    if (tg) tg.showAlert(`💡 Подсказка: слово "${notFound.word}" начинается здесь`);
     else alert(`💡 Подсказка: слово "${notFound.word}" начинается здесь`);
   }
-  if(!IS_GUEST) {
-    fetch(`${BASE_URL}/api/progress/${CASE_ID}/hint`,{method:'POST',headers:headers()}).catch(()=>{});
+  if (!IS_GUEST) {
+    fetch(`${BASE_URL}/api/progress/${CASE_ID}/hint`, { method: 'POST', headers: headers() }).catch(() => {});
   }
 }
 
@@ -209,44 +245,43 @@ function checkAnswers() {
   const me = document.getElementById('inMethod');
   const lo = document.getElementById('inLocation');
   let all = true;
-  function chk(inp,val,correct) {
-    if(val===correct){inp.classList.add('ok');inp.classList.remove('bad');}
-    else{inp.classList.add('bad');inp.classList.remove('ok');all=false;}
+  function chk(inp, val, correct) {
+    if (val === correct) { inp.classList.add('ok'); inp.classList.remove('bad'); }
+    else { inp.classList.add('bad'); inp.classList.remove('ok'); all = false; }
   }
-  chk(ki,k,ANSWERS.killer);
-  chk(me,m,ANSWERS.method);
-  chk(lo,l,ANSWERS.location);
+  chk(ki, k, ANSWERS.killer);
+  chk(me, m, ANSWERS.method);
+  chk(lo, l, ANSWERS.location);
   const res = document.getElementById('result');
-  if(all) {
-    res.className='result ok';
-    res.textContent='🎉 Дело раскрыто! Блестящая работа, детектив!';
+  if (all) {
+    res.className = 'result ok';
+    res.textContent = '🎉 Дело раскрыто! Блестящая работа, детектив!';
     completeCase();
     trackEvent('game_complete');
   } else {
-    res.className='result bad';
-    res.textContent='🔍 Не всё верно. Продолжай искать улики...';
+    res.className = 'result bad';
+    res.textContent = '🔍 Не всё верно. Продолжай искать улики...';
   }
   saveProgress();
 }
 
 function renderGame(caseData, saved) {
   const config = caseData.puzzle_data;
-  GAME_GRID    = config.grid;
-  PLACEMENTS   = config.placements;
+  GAME_GRID = config.grid;
+  PLACEMENTS = config.placements;
   SECRET_CELLS = config.secret_cells;
-  WORD_ORDER   = config.word_order;
+  WORD_ORDER = config.word_order;
   ANSWERS = {
-    killer:   config.absent_words.killer,
-    method:   config.absent_words.method,
+    killer: config.absent_words.killer,
+    method: config.absent_words.method,
     location: config.location_answer,
   };
 
-  if(saved) {
-    (saved.found_words||[]).forEach(w=>foundSet.add(w));
+  if (saved) {
+    (saved.found_words || []).forEach(w => foundSet.add(w));
     hintUsed = saved.hint_used || false;
   }
 
-  const secretSet = new Set(SECRET_CELLS.map(([r,c])=>`${r},${c}`));
   const totalWords = PLACEMENTS.length;
 
   document.getElementById('app').innerHTML = `
@@ -259,11 +294,11 @@ function renderGame(caseData, saved) {
     <div class="hint-box">💡 Найди <b>${totalWords} слов</b> из ${WORD_ORDER.length}. <b>2 слова отсутствуют в сетке</b> — они часть разгадки. Красные буквы укажут место преступления.</div>
     <div class="prog-wrap"><div class="prog-bar" id="prog"></div></div>
     <div class="legend">
-      <span><span class="legend-dot" style="background:#b8ddb8"></span>Слова для поиска</span>
+      <span><span class="legend-dot" style="background:#7ec87e"></span>Найденные слова</span>
       <span><span class="legend-dot" style="background:#ffd0d0"></span>Буквы места</span>
     </div>
     <div class="grid-box"><div class="grid" id="grid"></div></div>
-    <div class="note" id="note">🔍 Найди все ${totalWords} слов — красные буквы укажут место преступления!</div>
+    <div class="note" id="note">🔍 Проведи пальцем по буквам — слова могут идти в любом направлении и изгибаться!</div>
     <div class="words-box">
       <div class="words-title">📋 Слова для поиска (${WORD_ORDER.length})</div>
       <div class="words-flow" id="chipList"></div>
@@ -273,18 +308,17 @@ function renderGame(caseData, saved) {
       <div class="ans-row"><div class="ans-icon">⚡</div><div class="ans-label">Орудие:</div><input class="ans-input" id="inMethod" type="text" placeholder="???"></div>
       <div class="ans-row"><div class="ans-icon">📍</div><div class="ans-label">Место:</div><input class="ans-input" id="inLocation" type="text" placeholder="???"></div>
     </div>
-    <button class="btn hint-btn" id="hintBtn" onclick="useHint()" ${hintUsed?'disabled':''}>
-      ${hintUsed?'💡 Подсказка использована':'💡 Подсказка (1 на дело)'}
+    <button class="btn hint-btn" id="hintBtn" onclick="useHint()" ${hintUsed ? 'disabled' : ''}>
+      ${hintUsed ? '💡 Подсказка использована' : '💡 Подсказка (1 на дело)'}
     </button>
     <button class="btn" onclick="checkAnswers()">✔ Проверить ответы</button>
     <div class="result" id="result"></div>
   `;
 
   const grid = document.getElementById('grid');
-  for(let r=0;r<SIZE;r++) {
-    for(let c=0;c<SIZE;c++) {
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
       const d = document.createElement('div');
-      const key = `${r},${c}`;
       d.className = 'cell';
       d.textContent = GAME_GRID[r][c];
       d.dataset.r = r;
@@ -293,13 +327,61 @@ function renderGame(caseData, saved) {
     }
   }
 
-  grid.addEventListener('mousedown',e=>{const p=posFromEl(e.target);if(!p)return;selecting=true;startPos=p;curSel=[p];highlight();});
-  grid.addEventListener('mouseover',e=>{if(!selecting)return;const p=posFromEl(e.target);if(!p)return;curSel=getLine(startPos,p);highlight();});
-  document.addEventListener('mouseup',()=>{if(!selecting)return;selecting=false;tryMatch(curSel);clearSel();curSel=[];});
-  grid.addEventListener('touchstart',e=>{e.preventDefault();const p=posFromTouch(e);if(!p)return;selecting=true;startPos=p;curSel=[p];highlight();},{passive:false});
-  grid.addEventListener('touchmove',e=>{e.preventDefault();if(!selecting)return;const p=posFromTouch(e);if(!p)return;curSel=getLine(startPos,p);highlight();},{passive:false});
-  document.addEventListener('touchend',()=>{if(!selecting)return;selecting=false;tryMatch(curSel);clearSel();curSel=[];});
+  // Mouse events
+  grid.addEventListener('mousedown', e => {
+    const p = posFromEl(e.target);
+    if (!p) return;
+    selecting = true;
+    curPath = [p];
+    visitedInPath = new Set([ck(p.r, p.c)]);
+    highlightPath();
+  });
 
+  grid.addEventListener('mouseover', e => {
+    if (!selecting) return;
+    const p = posFromEl(e.target);
+    if (!p) return;
+    addToPath(p);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!selecting) return;
+    selecting = false;
+    tryMatch();
+    clearSel();
+    curPath = [];
+    visitedInPath = new Set();
+  });
+
+  // Touch events
+  grid.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const p = posFromTouch(e);
+    if (!p) return;
+    selecting = true;
+    curPath = [p];
+    visitedInPath = new Set([ck(p.r, p.c)]);
+    highlightPath();
+  }, { passive: false });
+
+  grid.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!selecting) return;
+    const p = posFromTouch(e);
+    if (!p) return;
+    addToPath(p);
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => {
+    if (!selecting) return;
+    selecting = false;
+    tryMatch();
+    clearSel();
+    curPath = [];
+    visitedInPath = new Set();
+  });
+
+  // Chips
   const chipList = document.getElementById('chipList');
   WORD_ORDER.forEach(word => {
     const d = document.createElement('div');
@@ -309,29 +391,30 @@ function renderGame(caseData, saved) {
     chipList.appendChild(d);
   });
 
-  if(foundSet.size > 0) {
+  // Restore progress
+  if (foundSet.size > 0) {
     PLACEMENTS.forEach(p => {
-      if(foundSet.has(p.word))
-        p.cells.forEach(([r,c])=>{ const el=gc(r,c); if(el) el.classList.add('found'); });
+      if (foundSet.has(p.word))
+        p.cells.forEach(([r, c]) => { const el = gc(r, c); if (el) el.classList.add('found'); });
     });
-    document.getElementById('prog').style.width=(foundSet.size/PLACEMENTS.length*100)+'%';
-    if(foundSet.size===PLACEMENTS.length) onAllFound();
+    document.getElementById('prog').style.width = (foundSet.size / PLACEMENTS.length * 100) + '%';
+    if (foundSet.size === PLACEMENTS.length) onAllFound();
   }
 }
 
 try {
   const [caseRes, saved] = await Promise.all([
-    fetch(`${BASE_URL}/api/cases/${CASE_ID}`, { headers: headers() }).then(r=>r.json()),
+    fetch(`${BASE_URL}/api/cases/${CASE_ID}`, { headers: headers() }).then(r => r.json()),
     loadProgress()
   ]);
-  if(caseRes.error) {
-    document.getElementById('app').innerHTML=`<div class="loading">❌ ${caseRes.error}</div>`;
+  if (caseRes.error) {
+    document.getElementById('app').innerHTML = `<div class="loading">❌ ${caseRes.error}</div>`;
   } else {
     renderGame(caseRes, saved);
     trackEvent('game_start');
   }
-} catch(e) {
-  document.getElementById('app').innerHTML='<div class="loading">❌ Ошибка загрузки</div>';
+} catch (e) {
+  document.getElementById('app').innerHTML = '<div class="loading">❌ Ошибка загрузки</div>';
 }
 
 window.useHint = useHint;
