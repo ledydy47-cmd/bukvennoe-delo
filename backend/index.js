@@ -4,22 +4,30 @@ import dotenv from 'dotenv';
 import pool from './db.js';
 import casesRouter from './routes/cases.js';
 import progressRouter from './routes/progress.js';
+import analyticsRouter from './routes/analytics.js';
+import { handleBotUpdate } from './bot.js';
 
 dotenv.config();
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
-// Роуты
 app.use('/api/cases', casesRouter);
 app.use('/api/progress', progressRouter);
+app.use('/api/analytics', analyticsRouter);
 
-// Healthcheck для Railway
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-// Инициализация БД при старте
+app.post('/webhook', async (req, res) => {
+  res.json({ ok: true });
+  try {
+    await handleBotUpdate(req.body);
+  } catch (e) {
+    console.error('Bot error:', e);
+  }
+});
+
 async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -58,6 +66,19 @@ async function initDB() {
       last_saved_at  TIMESTAMP DEFAULT NOW(),
       UNIQUE(user_id, case_id)
     );
+
+    CREATE TABLE IF NOT EXISTS analytics (
+      id         SERIAL PRIMARY KEY,
+      user_id    INT REFERENCES users(id) ON DELETE SET NULL,
+      event      VARCHAR(50) NOT NULL,
+      case_id    INT,
+      meta       JSONB DEFAULT '{}',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS analytics_event_idx ON analytics(event);
+    CREATE INDEX IF NOT EXISTS analytics_user_idx  ON analytics(user_id);
+    CREATE INDEX IF NOT EXISTS analytics_date_idx  ON analytics(created_at);
   `);
   console.log('✅ БД инициализирована');
 }
