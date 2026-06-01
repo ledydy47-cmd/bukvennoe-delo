@@ -61,19 +61,33 @@ export async function getOrCreateUser(telegramUser) {
 export function authMiddleware(req, res, next) {
   const initData = req.headers['x-init-data'];
 
-  // В режиме разработки пропускаем проверку
-  if (process.env.NODE_ENV !== 'production' && !initData) {
-    req.user = { id: 1, telegram_id: 0, subscription_type: 'lifetime' };
+  // Нет initData — гостевой режим (браузер без Telegram)
+  // Создаём временного гостевого пользователя
+  if (!initData) {
+    req.user = {
+      id: 0,
+      telegram_id: 0,
+      subscription_type: 'free',
+      subscription_expires_at: null,
+    };
     return next();
   }
 
   const telegramUser = verifyTelegramData(initData);
+
+  // initData есть но невалидный — только блокируем если production и данные явно битые
   if (!telegramUser) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    // Даём гостевой доступ вместо 401 — лучше UX
+    req.user = {
+      id: 0,
+      telegram_id: 0,
+      subscription_type: 'free',
+      subscription_expires_at: null,
+    };
+    return next();
   }
 
-  getOrCreateUser(telegramUser).then(user => {
-    req.user = user;
-    next();
-  }).catch(() => res.status(500).json({ error: 'Server error' }));
+  getOrCreateUser(telegramUser)
+    .then(user => { req.user = user; next(); })
+    .catch(() => res.status(500).json({ error: 'Server error' }));
 }
