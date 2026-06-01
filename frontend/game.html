@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Буквенное дело</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #f5f0e8;
+  font-family: 'Georgia', serif;
+  display: flex;
+  justify-content: center;
+  padding: 12px 12px 40px;
+  min-height: 100vh;
+}
+.wrap { max-width: 440px; width: 100%; }
+.header { text-align: center; margin-bottom: 10px; padding-top: 6px; }
+.brand { font-size: 20px; font-weight: bold; letter-spacing: 5px; color: #2c1a0e; border: 3px solid #2c1a0e; display: inline-block; padding: 4px 14px; margin-bottom: 3px; }
+.case-sub { font-size: 11px; letter-spacing: 2px; color: #6b4c2a; text-transform: uppercase; }
+.case-name { font-size: 17px; font-weight: bold; font-style: italic; color: #2c1a0e; margin-top: 3px; }
+hr { border: none; border-top: 2px solid #2c1a0e; margin: 8px 0; }
+.hint-box { background: #fff9e6; border-left: 4px solid #c8a84b; padding: 8px 12px; margin-bottom: 10px; font-size: 12px; color: #5a3e1b; border-radius: 0 4px 4px 0; line-height: 1.5; }
+.prog-wrap { background: #ddd0b0; border-radius: 10px; height: 6px; margin-bottom: 10px; overflow: hidden; }
+.prog-bar { height: 100%; background: #2c1a0e; border-radius: 10px; transition: width .4s; width: 0%; }
+.grid-box { background: #fdf6ec; border: 3px solid #2c1a0e; padding: 8px; margin-bottom: 12px; border-radius: 4px; }
+.grid { display: grid; grid-template-columns: repeat(10,1fr); gap: 2px; user-select: none; }
+.cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: #2c1a0e; cursor: pointer; border-radius: 3px; transition: background .1s; -webkit-tap-highlight-color: transparent; }
+.cell:hover { background: #e8d5b0; }
+.cell.sel    { background: #f0c060 !important; }
+.cell.found  { background: #b8ddb8; color: #145214; }
+.cell.secret { background: #ffd0d0; color: #7a0000; font-weight: 900; }
+.words-box { background: #fdf6ec; border: 2px solid #2c1a0e; border-radius: 4px; padding: 12px 14px; margin-bottom: 12px; }
+.words-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #6b4c2a; margin-bottom: 10px; text-align: center; }
+.words-flow { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+.chip { font-size: 13px; font-weight: bold; letter-spacing: 1px; color: #2c1a0e; background: #ede0c8; border-radius: 20px; padding: 4px 12px; text-transform: uppercase; border: 1.5px solid #c8a880; transition: all .2s; }
+.chip.crossed { text-decoration: line-through; color: #bbb; background: #f0ebe0; border-color: #ddd; }
+.note { background: #f0e8d0; border: 1.5px dashed #c8a84b; border-radius: 6px; padding: 10px 13px; font-size: 12px; color: #5a3e1b; margin-bottom: 12px; line-height: 1.6; text-align: center; }
+.ans-box { background: #fdf6ec; border: 2px solid #2c1a0e; border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+.ans-row { display: flex; align-items: center; margin-bottom: 13px; }
+.ans-row:last-child { margin-bottom: 0; }
+.ans-icon  { font-size: 18px; margin-right: 8px; width: 24px; text-align: center; }
+.ans-label { font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; color: #6b4c2a; width: 90px; flex-shrink: 0; }
+.ans-input { flex: 1; border: none; border-bottom: 2px solid #2c1a0e; background: transparent; font-family: 'Georgia',serif; font-size: 15px; font-weight: bold; color: #2c1a0e; padding: 2px 6px; text-transform: uppercase; letter-spacing: 2px; outline: none; }
+.ans-input:focus { border-bottom-color: #c0392b; }
+.ans-input.ok  { border-bottom-color: #27ae60; color: #27ae60; }
+.ans-input.bad { border-bottom-color: #e74c3c; color: #e74c3c; }
+.btn { width: 100%; padding: 13px; background: #2c1a0e; color: #f5f0e8; border: none; border-radius: 30px; font-family: 'Georgia',serif; font-size: 15px; font-weight: bold; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; transition: background .2s; margin-bottom: 8px; }
+.btn:hover { background: #4a2c14; }
+.btn.hint-btn { background: #c8a84b; color: #2c1a0e; }
+.btn.hint-btn:disabled { background: #ddd; color: #999; cursor: default; }
+.result { text-align: center; font-size: 14px; font-weight: bold; padding: 10px; border-radius: 6px; display: none; margin-bottom: 10px; }
+.result.ok  { background: #c8e6c9; color: #1b5e20; display: block; }
+.result.bad { background: #ffcdd2; color: #b71c1c; display: block; }
+.back-btn { background: none; border: none; color: #6b4c2a; font-size: 13px; cursor: pointer; margin-bottom: 10px; font-family: 'Georgia',serif; }
+.loading { text-align: center; padding: 40px; font-size: 14px; color: #6b4c2a; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="back-btn" onclick="window.location.href='index.html'">← Все дела</button>
+  <div id="app"><div class="loading">🔍 Загружаем дело...</div></div>
+</div>
+
+<script type="module">
+const BASE_URL = 'https://inspiring-friendship-production-bf42.up.railway.app';
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+const headers = () => ({
+  'Content-Type': 'application/json',
+  'X-Init-Data': tg?.initData ?? '',
+});
+
+const params  = new URLSearchParams(window.location.search);
+const CASE_ID = params.get('id');
+
+let GAME_GRID = [], PLACEMENTS = [], SECRET_CELLS = [];
+let ANSWERS = {};
+let foundSet = new Set();
+let hintUsed = false;
+let startTime = Date.now();
+let selecting = false, startPos = null, curSel = [];
+
+const SIZE = 10;
+const DIRS = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+const RU_FILL = 'АБВГДЖЗИКЛМНПРСТУФХЦЧШЩЫЭЮЯ';
+
+async function trackEvent(event, meta = {}) {
+  try {
+    await fetch(`${BASE_URL}/api/analytics/event`, {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({ event, case_id: CASE_ID, meta }),
+    });
+  } catch {}
+}
+
+async function loadCase() {
+  const res = await fetch(`${BASE_URL}/api/cases/${CASE_ID}`, { headers: headers() });
+  return res.json();
+}
+
+async function saveProgress() {
+  try {
+    await fetch(`${BASE_URL}/api/progress/${CASE_ID}`, {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({
+        found_words: [...foundSet],
+        hint_used: hintUsed,
+        answers: getCurrentAnswers(),
+        time_spent_sec: Math.floor((Date.now() - startTime) / 1000),
+      }),
+    });
+  } catch {}
+}
+
+async function completeCase() {
+  try {
+    await fetch(`${BASE_URL}/api/progress/${CASE_ID}/complete`, {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({ answers: getCurrentAnswers() }),
+    });
+    trackEvent('game_complete', { time_sec: Math.floor((Date.now() - startTime) / 1000) });
+  } catch {}
+}
+
+function getCurrentAnswers() {
+  return {
+    killer:   document.getElementById('inKiller')?.value ?? '',
+    method:   document.getElementById('inMethod')?.value ?? '',
+    location: document.getElementById('inLocation')?.value ?? '',
+  };
+}
+
+// PUZZLE ENGINE
+function shuffle(a) {
+  for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function makeEmpty() { return Array.from({length:SIZE},()=>Array(SIZE).fill(null)); }
+function canPlace(g,word,r,c,dr,dc) {
+  for(let i=0;i<word.length;i++){
+    const nr=r+dr*i,nc=c+dc*i;
+    if(nr<0||nr>=SIZE||nc<0||nc>=SIZE) return false;
+    if(g[nr][nc]!==null&&g[nr][nc]!==word[i]) return false;
+  }
+  return true;
+}
+function doPlace(g,word,r,c,dr,dc) {
+  const cells=[];
+  for(let i=0;i<word.length;i++){ g[r+dr*i][c+dc*i]=word[i]; cells.push([r+dr*i,c+dc*i]); }
+  return cells;
+}
+function isLine(cells) {
+  if(cells.length<=2) return false;
+  const rows=cells.map(c=>c[0]),cols=cells.map(c=>c[1]);
+  if(new Set(rows).size===1) return true;
+  if(new Set(cols).size===1) return true;
+  const drs=[],dcs=[];
+  for(let i=1;i<cells.length;i++){ drs.push(cells[i][0]-cells[i-1][0]); dcs.push(cells[i][1]-cells[i-1][1]); }
+  if(new Set(drs).size===1&&new Set(dcs).size===1) return true;
+  return false;
+}
+
+function buildPuzzle(config) {
+  const { words_in_grid, location_answer } = config;
+
+  for(let attempt=0;attempt<1000;attempt++){
+    const g=makeEmpty();
+    const placements=[];
+    let ok=true;
+    const words=shuffle([...words_in_grid]);
+
+    for(const word of words){
+      const options=[];
+      for(let r=0;r<SIZE;r++)
+        for(let c=0;c<SIZE;c++)
+          for(const [dr,dc] of DIRS)
+            if(canPlace(g,word,r,c,dr,dc))
+              options.push({r,c,dr,dc});
+      if(!options.length){ok=false;break;}
+      const {r,c,dr,dc}=options[Math.floor(Math.random()*options.length)];
+      placements.push({word,cells:doPlace(g,word,r,c,dr,dc)});
+    }
+    if(!ok) continue;
+
+    const usedSet=new Set();
+    placements.forEach(p=>p.cells.forEach(([r,c])=>usedSet.add(`${r},${c}`)));
+    const free=[];
+    for(let r=0;r<SIZE;r++)
+      for(let c=0;c<SIZE;c++)
+        if(!usedSet.has(`${r},${c}`)) free.push([r,c]);
+
+    if(free.length<location_answer.length) continue;
+
+    shuffle(free);
+    let secretCells=free.slice(0,location_answer.length);
+    let tries=0;
+    while(isLine(secretCells)&&tries<50){ shuffle(free); secretCells=free.slice(0,location_answer.length); tries++; }
+    if(isLine(secretCells)) continue;
+
+    const locLetters=[...location_answer];
+    secretCells.forEach(([r,c],i)=>g[r][c]=locLetters[i]);
+
+    const safeFill=RU_FILL.split('').filter(ch=>![...location_answer].includes(ch));
+    for(let r=0;r<SIZE;r++)
+      for(let c=0;c<SIZE;c++)
+        if(g[r][c]===null) g[r][c]=safeFill[Math.floor(Math.random()*safeFill.length)];
+
+    return{grid:g,placements,secretCells};
+  }
+  return null;
+}
+
+// GRID INTERACTION
+function gc(r,c){return document.querySelector(`#grid .cell[data-r="${r}"][data-c="${c}"]`);}
+function posFromEl(el){if(!el||el.dataset.r===undefined)return null;return{r:+el.dataset.r,c:+el.dataset.c};}
+function posFromTouch(e){const t=e.touches[0];return posFromEl(document.elementFromPoint(t.clientX,t.clientY));}
+
+function getLine(a,b){
+  const dr=b.r-a.r,dc=b.c-a.c;
+  if(!dr&&!dc)return[a];
+  const ar=Math.abs(dr),ac=Math.abs(dc);
+  if(ar&&ac&&ar!==ac)return[a];
+  const n=Math.max(ar,ac),sr=dr?dr/ar:0,sc=dc?dc/ac:0;
+  const res=[];
+  for(let i=0;i<=n;i++)res.push({r:a.r+sr*i,c:a.c+sc*i});
+  return res;
+}
+
+function highlight(){
+  clearSel();
+  curSel.forEach(({r,c})=>{const el=gc(r,c);if(el&&!el.classList.contains('found'))el.classList.add('sel');});
+}
+function clearSel(){document.querySelectorAll('.cell.sel').forEach(e=>e.classList.remove('sel'));}
+function ck(r,c){return`${r},${c}`;}
+
+function tryMatch(sel){
+  if(sel.length<2)return;
+  const selKeys=sel.map(({r,c})=>ck(r,c));
+  const selKeysR=[...selKeys].reverse();
+  for(const p of PLACEMENTS){
+    if(foundSet.has(p.word))continue;
+    const wKeys=p.cells.map(([r,c])=>ck(r,c));
+    if(JSON.stringify(wKeys)===JSON.stringify(selKeys)||JSON.stringify(wKeys)===JSON.stringify(selKeysR)){
+      foundSet.add(p.word);
+      p.cells.forEach(([r,c])=>{const el=gc(r,c);if(el){el.classList.remove('sel');el.classList.add('found');}});
+      document.querySelectorAll(`.chip[data-word="${p.word}"]`).forEach(e=>e.classList.add('crossed'));
+      document.getElementById('prog').style.width=(foundSet.size/PLACEMENTS.length*100)+'%';
+      saveProgress();
+      if(foundSet.size===PLACEMENTS.length) onAllFound();
+      return;
+    }
+  }
+}
+
+function onAllFound(){
+  SECRET_CELLS.forEach(([r,c])=>{const el=gc(r,c);if(el)el.classList.add('secret');});
+  document.getElementById('note').innerHTML='🎉 Все слова найдены! Красные буквы — последняя подсказка. Собери из них слово!';
+}
+
+function useHint(){
+  if(hintUsed)return;
+  hintUsed=true;
+  document.getElementById('hintBtn').disabled=true;
+  document.getElementById('hintBtn').textContent='💡 Подсказка использована';
+  trackEvent('hint_used');
+  saveProgress();
+
+  // Находим первое ненайденное слово и подсвечиваем первую букву
+  const notFound=PLACEMENTS.find(p=>!foundSet.has(p.word));
+  if(notFound){
+    const[r,c]=notFound.cells[0];
+    const el=gc(r,c);
+    if(el){
+      el.style.background='#ffd54f';
+      el.style.color='#2c1a0e';
+      tg?.showAlert(`💡 Подсказка: слово "${notFound.word}" начинается с буквы "${GAME_GRID[r][c]}" в этом месте`);
+    }
+  }
+
+  fetch(`${BASE_URL}/api/progress/${CASE_ID}/hint`,{method:'POST',headers:headers()});
+}
+
+function checkAnswers(){
+  const k=document.getElementById('inKiller').value.trim().toUpperCase();
+  const m=document.getElementById('inMethod').value.trim().toUpperCase();
+  const l=document.getElementById('inLocation').value.trim().toUpperCase();
+  const ki=document.getElementById('inKiller');
+  const me=document.getElementById('inMethod');
+  const lo=document.getElementById('inLocation');
+  let all=true;
+  function chk(inp,val,correct){
+    if(val===correct){inp.classList.add('ok');inp.classList.remove('bad');}
+    else{inp.classList.add('bad');inp.classList.remove('ok');all=false;}
+  }
+  chk(ki,k,ANSWERS.killer);
+  chk(me,m,ANSWERS.method);
+  chk(lo,l,ANSWERS.location);
+  const res=document.getElementById('result');
+  if(all){
+    res.className='result ok';
+    res.textContent='🎉 Дело раскрыто! Блестящая работа, детектив!';
+    completeCase();
+  } else {
+    res.className='result bad';
+    res.textContent='🔍 Не всё верно. Продолжай искать улики...';
+  }
+  saveProgress();
+}
+
+function renderGame(caseData){
+  const config = caseData.puzzle_data;
+  ANSWERS = {
+    killer:   config.absent_words.killer,
+    method:   config.absent_words.method,
+    location: config.location_answer,
+  };
+
+  const puzzle = buildPuzzle(config);
+  if(!puzzle){ document.getElementById('app').innerHTML='<div class="loading">Ошибка загрузки</div>'; return; }
+
+  GAME_GRID    = puzzle.grid;
+  PLACEMENTS   = puzzle.placements;
+  SECRET_CELLS = puzzle.secretCells;
+
+  // Восстанавливаем прогресс
+  const saved = caseData.progress;
+  if(saved){
+    (saved.found_words||[]).forEach(w=>foundSet.add(w));
+    hintUsed = saved.hint_used || false;
+  }
+
+  const allWords = [...config.words_in_grid, config.absent_words.killer, config.absent_words.method];
+
+  document.getElementById('app').innerHTML = `
+    <div class="header">
+      <div class="brand">БУКВЕННОЕ ДЕЛО</div>
+      <div class="case-sub">Дело № ${caseData.case_number}</div>
+      <div class="case-name">«${caseData.title}»</div>
+    </div>
+    <hr>
+    <div class="hint-box">💡 Найди <b>11 слов</b> из 13. <b>2 слова отсутствуют в сетке</b> — они часть разгадки. Из оставшихся букв сложится последний ответ.</div>
+    <div class="prog-wrap"><div class="prog-bar" id="prog"></div></div>
+    <div class="grid-box"><div class="grid" id="grid"></div></div>
+    <div class="note" id="note">🔍 Найди все 11 слов — оставшиеся буквы укажут на разгадку!</div>
+    <div class="words-box">
+      <div class="words-title">📋 Слова для поиска (13)</div>
+      <div class="words-flow" id="chipList"></div>
+    </div>
+    <div class="ans-box">
+      <div class="ans-row"><div class="ans-icon">🔪</div><div class="ans-label">Убийца:</div><input class="ans-input" id="inKiller" type="text" placeholder="???"></div>
+      <div class="ans-row"><div class="ans-icon">⚡</div><div class="ans-label">Орудие:</div><input class="ans-input" id="inMethod" type="text" placeholder="???"></div>
+      <div class="ans-row"><div class="ans-icon">📍</div><div class="ans-label">Место:</div><input class="ans-input" id="inLocation" type="text" placeholder="???"></div>
+    </div>
+    <button class="btn hint-btn" id="hintBtn" onclick="useHint()" ${hintUsed?'disabled':''}>
+      ${hintUsed?'💡 Подсказка использована':'💡 Подсказка (1 на дело)'}
+    </button>
+    <button class="btn" onclick="checkAnswers()">✔ Проверить ответы</button>
+    <div class="result" id="result"></div>
+  `;
+
+  // Рендер сетки
+  const grid = document.getElementById('grid');
+  for(let r=0;r<SIZE;r++)
+    for(let c=0;c<SIZE;c++){
+      const d=document.createElement('div');
+      d.className='cell'; d.textContent=GAME_GRID[r][c];
+      d.dataset.r=r; d.dataset.c=c;
+      grid.appendChild(d);
+    }
+
+  grid.addEventListener('mousedown',e=>{const p=posFromEl(e.target);if(!p)return;selecting=true;startPos=p;curSel=[p];highlight();});
+  grid.addEventListener('mouseover',e=>{if(!selecting)return;const p=posFromEl(e.target);if(!p)return;curSel=getLine(startPos,p);highlight();});
+  document.addEventListener('mouseup',()=>{if(!selecting)return;selecting=false;tryMatch(curSel);clearSel();curSel=[];});
+  grid.addEventListener('touchstart',e=>{e.preventDefault();const p=posFromTouch(e);if(!p)return;selecting=true;startPos=p;curSel=[p];highlight();},{passive:false});
+  grid.addEventListener('touchmove',e=>{e.preventDefault();if(!selecting)return;const p=posFromTouch(e);if(!p)return;curSel=getLine(startPos,p);highlight();},{passive:false});
+  document.addEventListener('touchend',()=>{if(!selecting)return;selecting=false;tryMatch(curSel);clearSel();curSel=[];});
+
+  // Чипы слов
+  const chipList = document.getElementById('chipList');
+  shuffle([...allWords]).forEach(word=>{
+    const d=document.createElement('div');
+    d.className='chip'+(foundSet.has(word)?' crossed':'');
+    d.dataset.word=word; d.textContent=word;
+    chipList.appendChild(d);
+  });
+
+  // Восстанавливаем найденные слова визуально
+  if(saved && saved.found_words?.length){
+    PLACEMENTS.forEach(p=>{
+      if(foundSet.has(p.word))
+        p.cells.forEach(([r,c])=>{const el=gc(r,c);if(el)el.classList.add('found');});
+    });
+    document.getElementById('prog').style.width=(foundSet.size/PLACEMENTS.length*100)+'%';
+    if(foundSet.size===PLACEMENTS.length) onAllFound();
+  }
+}
+
+// INIT
+try {
+  const caseData = await loadCase();
+  if(caseData.error){
+    document.getElementById('app').innerHTML=`<div class="loading">❌ ${caseData.error}</div>`;
+  } else {
+    renderGame(caseData);
+  }
+} catch(e) {
+  document.getElementById('app').innerHTML='<div class="loading">❌ Ошибка загрузки</div>';
+}
+
+window.useHint = useHint;
+window.checkAnswers = checkAnswers;
+</script>
+</body>
+</html>

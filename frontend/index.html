@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Буквенное дело</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #f5f0e8;
+  font-family: 'Georgia', serif;
+  min-height: 100vh;
+  padding: 20px 16px 40px;
+}
+.header { text-align: center; margin-bottom: 24px; padding-top: 10px; }
+.brand {
+  font-size: 22px; font-weight: bold; letter-spacing: 6px;
+  color: #2c1a0e; border: 3px solid #2c1a0e;
+  display: inline-block; padding: 6px 18px; margin-bottom: 6px;
+}
+.subtitle { font-size: 12px; letter-spacing: 2px; color: #6b4c2a; text-transform: uppercase; }
+hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
+
+.cases-list { display: flex; flex-direction: column; gap: 12px; }
+
+.case-card {
+  background: #fdf6ec; border: 2px solid #2c1a0e;
+  border-radius: 8px; padding: 14px 16px;
+  cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 12px;
+}
+.case-card:hover { background: #f0e4cc; }
+.case-card.locked { opacity: 0.7; cursor: default; }
+.case-card.completed { border-color: #27ae60; }
+
+.case-num {
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  color: #6b4c2a; margin-bottom: 2px;
+}
+.case-title { font-size: 16px; font-weight: bold; color: #2c1a0e; }
+.case-meta { font-size: 11px; color: #888; margin-top: 4px; }
+
+.case-icon { font-size: 28px; flex-shrink: 0; }
+.case-info { flex: 1; }
+
+.badge {
+  font-size: 11px; font-weight: bold; padding: 3px 8px;
+  border-radius: 20px; flex-shrink: 0;
+}
+.badge.free     { background: #c8e6c9; color: #1b5e20; }
+.badge.locked   { background: #ffcdd2; color: #b71c1c; }
+.badge.done     { background: #c8e6c9; color: #1b5e20; }
+.badge.progress { background: #fff9c4; color: #f57f17; }
+
+.paywall {
+  background: #fdf6ec; border: 2px solid #2c1a0e;
+  border-radius: 8px; padding: 20px; text-align: center;
+  margin-top: 20px;
+}
+.paywall h3 { font-size: 18px; color: #2c1a0e; margin-bottom: 8px; }
+.paywall p  { font-size: 13px; color: #6b4c2a; margin-bottom: 16px; line-height: 1.5; }
+
+.btn {
+  width: 100%; padding: 13px; background: #2c1a0e; color: #f5f0e8;
+  border: none; border-radius: 30px; font-family: 'Georgia', serif;
+  font-size: 15px; font-weight: bold; letter-spacing: 1px;
+  cursor: pointer; margin-bottom: 8px;
+}
+.btn:hover { background: #4a2c14; }
+.btn.secondary {
+  background: transparent; color: #2c1a0e;
+  border: 2px solid #2c1a0e;
+}
+
+.loading {
+  text-align: center; padding: 40px;
+  font-size: 14px; color: #6b4c2a;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="brand">БУКВЕННОЕ ДЕЛО</div>
+  <div class="subtitle">Детективные головоломки</div>
+</div>
+<hr>
+
+<div id="app">
+  <div class="loading">🔍 Загружаем дела...</div>
+</div>
+
+<script type="module">
+const BASE_URL = 'https://inspiring-friendship-production-bf42.up.railway.app';
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+const headers = () => ({
+  'Content-Type': 'application/json',
+  'X-Init-Data': tg?.initData ?? '',
+});
+
+async function trackEvent(event, meta = {}) {
+  try {
+    await fetch(`${BASE_URL}/api/analytics/event`, {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({ event, meta }),
+    });
+  } catch {}
+}
+
+async function loadCases() {
+  try {
+    const res = await fetch(`${BASE_URL}/api/cases`, { headers: headers() });
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+function getIcon(progress, access) {
+  if (access === 'locked') return '🔒';
+  if (progress === 'completed') return '✅';
+  if (progress === 'in_progress') return '🔍';
+  return '📋';
+}
+
+function getBadge(progress, access, isFree) {
+  if (access === 'locked') return '<span class="badge locked">🔒 Подписка</span>';
+  if (progress === 'completed') return '<span class="badge done">✅ Раскрыто</span>';
+  if (progress === 'in_progress') return '<span class="badge progress">🔍 В процессе</span>';
+  if (isFree) return '<span class="badge free">🆓 Бесплатно</span>';
+  return '';
+}
+
+function renderCases(cases) {
+  const app = document.getElementById('app');
+
+  if (!cases.length) {
+    app.innerHTML = '<div class="loading">Дела не найдены</div>';
+    return;
+  }
+
+  const list = cases.map(c => `
+    <div class="case-card ${c.access === 'locked' ? 'locked' : ''} ${c.progress === 'completed' ? 'completed' : ''}"
+         onclick="openCase(${c.id}, '${c.access}')">
+      <div class="case-icon">${getIcon(c.progress, c.access)}</div>
+      <div class="case-info">
+        <div class="case-num">Дело № ${c.case_number}</div>
+        <div class="case-title">${c.title}</div>
+        <div class="case-meta">
+          ${c.progress === 'in_progress' ? `Найдено слов: ${c.found_words?.length ?? 0}` : ''}
+        </div>
+      </div>
+      ${getBadge(c.progress, c.access, c.is_free)}
+    </div>
+  `).join('');
+
+  const hasLocked = cases.some(c => c.access === 'locked');
+
+  app.innerHTML = `
+    <div class="cases-list">${list}</div>
+    ${hasLocked ? `
+    <div class="paywall">
+      <h3>🔓 Открыть все дела</h3>
+      <p>Подписка даёт доступ ко всем делам и новым каждую неделю</p>
+      <button class="btn" onclick="showSubscribe()">💳 Оформить подписку</button>
+    </div>` : ''}
+  `;
+}
+
+window.openCase = function(id, access) {
+  if (access === 'locked') {
+    trackEvent('paywall_shown');
+    showSubscribe();
+    return;
+  }
+  trackEvent('game_start', { case_id: id });
+  window.location.href = `game.html?id=${id}`;
+};
+
+window.showSubscribe = function() {
+  tg?.showPopup({
+    title: '🔓 Подписка',
+    message: 'Доступ ко всем делам.\n\n📅 Месяц — 199 ₽\n♾️ Навсегда — 990 ₽',
+    buttons: [
+      { id: 'monthly',  type: 'default', text: '📅 199 ₽ / месяц' },
+      { id: 'lifetime', type: 'default', text: '♾️ 990 ₽ навсегда' },
+      { id: 'cancel',   type: 'cancel'                             },
+    ]
+  });
+};
+
+trackEvent('app_open');
+const cases = await loadCases();
+renderCases(cases);
+</script>
+</body>
+</html>
