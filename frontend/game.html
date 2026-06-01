@@ -19,7 +19,7 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 8px 0; }
 .prog-bar { height: 100%; background: #2c1a0e; border-radius: 10px; transition: width .4s; width: 0%; }
 .grid-box { background: #fdf6ec; border: 3px solid #2c1a0e; padding: 8px; margin-bottom: 12px; border-radius: 4px; }
 .grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 3px; user-select: none; }
-.cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: #2c1a0e; cursor: pointer; border-radius: 3px; transition: background .1s; -webkit-tap-highlight-color: transparent; background: #b8ddb8; }
+.cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: #2c1a0e; cursor: pointer; border-radius: 3px; transition: background .1s; -webkit-tap-highlight-color: transparent; background: #ede0c8; }
 .cell.secret { background: #ffd0d0; color: #7a0000; font-weight: 900; }
 .cell.sel { background: #f0c060 !important; color: #2c1a0e !important; }
 .cell.found { background: #7ec87e; color: #0a3d0a; }
@@ -177,6 +177,7 @@ function tryMatch(sel) {
 }
 
 function onAllFound() {
+  SECRET_CELLS.forEach(([r,c])=>{ const el=gc(r,c); if(el) el.classList.add('secret'); });
   document.getElementById('note').innerHTML='🎉 Все слова найдены! Красные буквы — последняя подсказка. Собери из них слово — это место преступления!';
 }
 
@@ -284,7 +285,7 @@ function renderGame(caseData, saved) {
     for(let c=0;c<SIZE;c++) {
       const d = document.createElement('div');
       const key = `${r},${c}`;
-      d.className = secretSet.has(key) ? 'cell secret' : 'cell';
+      d.className = 'cell';
       d.textContent = GAME_GRID[r][c];
       d.dataset.r = r;
       d.dataset.c = c;
