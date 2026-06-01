@@ -25,6 +25,10 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
 .unlock-banner {
   text-align: center;
   margin-bottom: 24px;
+  padding: 20px 16px;
+  background: #fdf6ec;
+  border: 2px solid #2c1a0e;
+  border-radius: 10px;
 }
 .unlock-title {
   font-size: 20px;
@@ -103,14 +107,13 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
 <hr>
 
 <div id="subStatus"></div>
-
 <div id="unlockBanner" style="display:none;">
   <div class="unlock-banner">
     <div class="unlock-title">ОТКРОЙ ВСЕ ДЕЛА</div>
     <div class="unlock-sub">50+ дел сейчас + 30 новых дел каждую неделю</div>
     <button class="unlock-btn" onclick="goSubscribe()">🔓 Открыть доступ</button>
   </div>
-  <hr>
+  <br>
 </div>
 
 <div id="app"><div class="loading">🔍 Загружаем дела...</div></div>
@@ -182,7 +185,10 @@ function renderCases(cases) {
   }
 
   const hasLocked = cases.some(c => c.access === 'locked');
-  if (hasLocked) {
+  const hasCompleted = cases.some(c => c.progress === 'completed');
+
+  // Показываем баннер только если есть закрытые дела И есть хотя бы одно завершённое
+  if (hasLocked && hasCompleted) {
     document.getElementById('unlockBanner').style.display = 'block';
   }
 
