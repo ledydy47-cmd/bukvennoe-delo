@@ -7,14 +7,7 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: #f5f0e8;
-  font-family: 'Georgia', serif;
-  display: flex;
-  justify-content: center;
-  padding: 12px 12px 40px;
-  min-height: 100vh;
-}
+body { background: #f5f0e8; font-family: 'Georgia', serif; display: flex; justify-content: center; padding: 12px 12px 40px; min-height: 100vh; }
 .wrap { max-width: 440px; width: 100%; }
 .header { text-align: center; margin-bottom: 10px; padding-top: 6px; }
 .brand { font-size: 20px; font-weight: bold; letter-spacing: 5px; color: #2c1a0e; border: 3px solid #2c1a0e; display: inline-block; padding: 4px 14px; margin-bottom: 3px; }
@@ -28,8 +21,8 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 8px 0; }
 .grid { display: grid; grid-template-columns: repeat(10,1fr); gap: 2px; user-select: none; }
 .cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: #2c1a0e; cursor: pointer; border-radius: 3px; transition: background .1s; -webkit-tap-highlight-color: transparent; }
 .cell:hover { background: #e8d5b0; }
-.cell.sel    { background: #f0c060 !important; }
-.cell.found  { background: #b8ddb8; color: #145214; }
+.cell.sel { background: #f0c060 !important; }
+.cell.found { background: #b8ddb8; color: #145214; }
 .cell.secret { background: #ffd0d0; color: #7a0000; font-weight: 900; }
 .words-box { background: #fdf6ec; border: 2px solid #2c1a0e; border-radius: 4px; padding: 12px 14px; margin-bottom: 12px; }
 .words-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #6b4c2a; margin-bottom: 10px; text-align: center; }
@@ -40,18 +33,18 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 8px 0; }
 .ans-box { background: #fdf6ec; border: 2px solid #2c1a0e; border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
 .ans-row { display: flex; align-items: center; margin-bottom: 13px; }
 .ans-row:last-child { margin-bottom: 0; }
-.ans-icon  { font-size: 18px; margin-right: 8px; width: 24px; text-align: center; }
+.ans-icon { font-size: 18px; margin-right: 8px; width: 24px; text-align: center; }
 .ans-label { font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; color: #6b4c2a; width: 90px; flex-shrink: 0; }
 .ans-input { flex: 1; border: none; border-bottom: 2px solid #2c1a0e; background: transparent; font-family: 'Georgia',serif; font-size: 15px; font-weight: bold; color: #2c1a0e; padding: 2px 6px; text-transform: uppercase; letter-spacing: 2px; outline: none; }
 .ans-input:focus { border-bottom-color: #c0392b; }
-.ans-input.ok  { border-bottom-color: #27ae60; color: #27ae60; }
+.ans-input.ok { border-bottom-color: #27ae60; color: #27ae60; }
 .ans-input.bad { border-bottom-color: #e74c3c; color: #e74c3c; }
 .btn { width: 100%; padding: 13px; background: #2c1a0e; color: #f5f0e8; border: none; border-radius: 30px; font-family: 'Georgia',serif; font-size: 15px; font-weight: bold; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; transition: background .2s; margin-bottom: 8px; }
 .btn:hover { background: #4a2c14; }
 .btn.hint-btn { background: #c8a84b; color: #2c1a0e; }
 .btn.hint-btn:disabled { background: #ddd; color: #999; cursor: default; }
 .result { text-align: center; font-size: 14px; font-weight: bold; padding: 10px; border-radius: 6px; display: none; margin-bottom: 10px; }
-.result.ok  { background: #c8e6c9; color: #1b5e20; display: block; }
+.result.ok { background: #c8e6c9; color: #1b5e20; display: block; }
 .result.bad { background: #ffcdd2; color: #b71c1c; display: block; }
 .back-btn { background: none; border: none; color: #6b4c2a; font-size: 13px; cursor: pointer; margin-bottom: 10px; font-family: 'Georgia',serif; }
 .loading { text-align: center; padding: 40px; font-size: 14px; color: #6b4c2a; }
@@ -62,7 +55,6 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 8px 0; }
   <button class="back-btn" onclick="window.location.href='index.html'">← Все дела</button>
   <div id="app"><div class="loading">🔍 Загружаем дело...</div></div>
 </div>
-
 <script type="module">
 const BASE_URL = 'https://inspiring-friendship-production-bf42.up.railway.app';
 const tg = window.Telegram?.WebApp;
@@ -75,25 +67,18 @@ const headers = () => ({
 
 const params  = new URLSearchParams(window.location.search);
 const CASE_ID = params.get('id');
-
-// Определяем гостевой режим
 const IS_GUEST = !tg?.initData;
-
-// localStorage ключ для гостя
 const LS_KEY = `progress_case_${CASE_ID}`;
 
-let GAME_GRID = [], PLACEMENTS = [], SECRET_CELLS = [];
+const SIZE = 10;
+let GAME_GRID = [], PLACEMENTS = [], SECRET_CELLS = [], WORD_ORDER = [];
 let ANSWERS = {};
 let foundSet = new Set();
 let hintUsed = false;
 let startTime = Date.now();
 let selecting = false, startPos = null, curSel = [];
 
-const SIZE = 10;
-const DIRS = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
-const RU_FILL = 'АБВГДЖЗИКЛМНПРСТУФХЦЧШЩЫЭЮЯ';
-
-// ── ПРОГРЕСС ──────────────────────────────────────────────────
+// ── ПРОГРЕСС ─────────────────────────────────────────────────
 
 async function loadProgress() {
   if (IS_GUEST) {
@@ -107,9 +92,9 @@ async function loadProgress() {
 
 async function saveProgress() {
   const data = {
-    found_words:   [...foundSet],
-    hint_used:     hintUsed,
-    answers:       getCurrentAnswers(),
+    found_words:    [...foundSet],
+    hint_used:      hintUsed,
+    answers:        getCurrentAnswers(),
     time_spent_sec: Math.floor((Date.now() - startTime) / 1000),
   };
   if (IS_GUEST) {
@@ -140,6 +125,7 @@ async function completeCase() {
 }
 
 async function trackEvent(event, meta = {}) {
+  if (IS_GUEST) return;
   try {
     await fetch(`${BASE_URL}/api/analytics/event`, {
       method: 'POST', headers: headers(),
@@ -156,111 +142,40 @@ function getCurrentAnswers() {
   };
 }
 
-// ── PUZZLE ENGINE ─────────────────────────────────────────────
+// ── GRID ─────────────────────────────────────────────────────
 
-function shuffle(a) {
-  for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-  return a;
-}
-function makeEmpty() { return Array.from({length:SIZE},()=>Array(SIZE).fill(null)); }
-function canPlace(g,word,r,c,dr,dc) {
-  for(let i=0;i<word.length;i++){
-    const nr=r+dr*i,nc=c+dc*i;
-    if(nr<0||nr>=SIZE||nc<0||nc>=SIZE) return false;
-    if(g[nr][nc]!==null&&g[nr][nc]!==word[i]) return false;
-  }
-  return true;
-}
-function doPlace(g,word,r,c,dr,dc) {
-  const cells=[];
-  for(let i=0;i<word.length;i++){ g[r+dr*i][c+dc*i]=word[i]; cells.push([r+dr*i,c+dc*i]); }
-  return cells;
-}
-function isLine(cells) {
-  if(cells.length<=2) return false;
-  const rows=cells.map(c=>c[0]),cols=cells.map(c=>c[1]);
-  if(new Set(rows).size===1) return true;
-  if(new Set(cols).size===1) return true;
-  const drs=[],dcs=[];
-  for(let i=1;i<cells.length;i++){ drs.push(cells[i][0]-cells[i-1][0]); dcs.push(cells[i][1]-cells[i-1][1]); }
-  if(new Set(drs).size===1&&new Set(dcs).size===1) return true;
-  return false;
-}
+function gc(r,c) { return document.querySelector(`#grid .cell[data-r="${r}"][data-c="${c}"]`); }
+function posFromEl(el) { if(!el||el.dataset.r===undefined)return null; return{r:+el.dataset.r,c:+el.dataset.c}; }
+function posFromTouch(e) { const t=e.touches[0]; return posFromEl(document.elementFromPoint(t.clientX,t.clientY)); }
 
-function buildPuzzle(config) {
-  const { words_in_grid, location_answer } = config;
-  for(let attempt=0;attempt<1000;attempt++){
-    const g=makeEmpty();
-    const placements=[];
-    let ok=true;
-    const words=shuffle([...words_in_grid]);
-    for(const word of words){
-      const options=[];
-      for(let r=0;r<SIZE;r++)
-        for(let c=0;c<SIZE;c++)
-          for(const [dr,dc] of DIRS)
-            if(canPlace(g,word,r,c,dr,dc))
-              options.push({r,c,dr,dc});
-      if(!options.length){ok=false;break;}
-      const {r,c,dr,dc}=options[Math.floor(Math.random()*options.length)];
-      placements.push({word,cells:doPlace(g,word,r,c,dr,dc)});
-    }
-    if(!ok) continue;
-    const usedSet=new Set();
-    placements.forEach(p=>p.cells.forEach(([r,c])=>usedSet.add(`${r},${c}`)));
-    const free=[];
-    for(let r=0;r<SIZE;r++)
-      for(let c=0;c<SIZE;c++)
-        if(!usedSet.has(`${r},${c}`)) free.push([r,c]);
-    if(free.length<location_answer.length) continue;
-    shuffle(free);
-    let secretCells=free.slice(0,location_answer.length);
-    let tries=0;
-    while(isLine(secretCells)&&tries<50){ shuffle(free); secretCells=free.slice(0,location_answer.length); tries++; }
-    if(isLine(secretCells)) continue;
-    const locLetters=[...location_answer];
-    secretCells.forEach(([r,c],i)=>g[r][c]=locLetters[i]);
-    const safeFill=RU_FILL.split('').filter(ch=>![...location_answer].includes(ch));
-    for(let r=0;r<SIZE;r++)
-      for(let c=0;c<SIZE;c++)
-        if(g[r][c]===null) g[r][c]=safeFill[Math.floor(Math.random()*safeFill.length)];
-    return{grid:g,placements,secretCells};
-  }
-  return null;
-}
-
-// ── GRID INTERACTION ──────────────────────────────────────────
-
-function gc(r,c){return document.querySelector(`#grid .cell[data-r="${r}"][data-c="${c}"]`);}
-function posFromEl(el){if(!el||el.dataset.r===undefined)return null;return{r:+el.dataset.r,c:+el.dataset.c};}
-function posFromTouch(e){const t=e.touches[0];return posFromEl(document.elementFromPoint(t.clientX,t.clientY));}
-function getLine(a,b){
-  const dr=b.r-a.r,dc=b.c-a.c;
-  if(!dr&&!dc)return[a];
-  const ar=Math.abs(dr),ac=Math.abs(dc);
-  if(ar&&ac&&ar!==ac)return[a];
-  const n=Math.max(ar,ac),sr=dr?dr/ar:0,sc=dc?dc/ac:0;
+function getLine(a,b) {
+  const dr=b.r-a.r, dc=b.c-a.c;
+  if(!dr&&!dc) return[a];
+  const ar=Math.abs(dr), ac=Math.abs(dc);
+  if(ar&&ac&&ar!==ac) return[a];
+  const n=Math.max(ar,ac), sr=dr?dr/ar:0, sc=dc?dc/ac:0;
   const res=[];
-  for(let i=0;i<=n;i++)res.push({r:a.r+sr*i,c:a.c+sc*i});
+  for(let i=0;i<=n;i++) res.push({r:a.r+sr*i, c:a.c+sc*i});
   return res;
 }
-function highlight(){
-  clearSel();
-  curSel.forEach(({r,c})=>{const el=gc(r,c);if(el&&!el.classList.contains('found'))el.classList.add('sel');});
-}
-function clearSel(){document.querySelectorAll('.cell.sel').forEach(e=>e.classList.remove('sel'));}
-function ck(r,c){return`${r},${c}`;}
 
-function tryMatch(sel){
-  if(sel.length<2)return;
-  const selKeys=sel.map(({r,c})=>ck(r,c));
-  const selKeysR=[...selKeys].reverse();
-  for(const p of PLACEMENTS){
-    if(foundSet.has(p.word))continue;
-    const wKeys=p.cells.map(([r,c])=>ck(r,c));
-    if(JSON.stringify(wKeys)===JSON.stringify(selKeys)||JSON.stringify(wKeys)===JSON.stringify(selKeysR)){
+function highlight() {
+  clearSel();
+  curSel.forEach(({r,c})=>{ const el=gc(r,c); if(el&&!el.classList.contains('found')) el.classList.add('sel'); });
+}
+function clearSel() { document.querySelectorAll('.cell.sel').forEach(e=>e.classList.remove('sel')); }
+function ck(r,c) { return`${r},${c}`; }
+
+function tryMatch(sel) {
+  if(sel.length<2) return;
+  const selKeys  = sel.map(({r,c})=>ck(r,c));
+  const selKeysR = [...selKeys].reverse();
+  for(const p of PLACEMENTS) {
+    if(foundSet.has(p.word)) continue;
+    const wKeys = p.cells.map(([r,c])=>ck(r,c));
+    if(JSON.stringify(wKeys)===JSON.stringify(selKeys)||JSON.stringify(wKeys)===JSON.stringify(selKeysR)) {
       foundSet.add(p.word);
-      p.cells.forEach(([r,c])=>{const el=gc(r,c);if(el){el.classList.remove('sel');el.classList.add('found');}});
+      p.cells.forEach(([r,c])=>{ const el=gc(r,c); if(el){el.classList.remove('sel');el.classList.add('found');} });
       document.querySelectorAll(`.chip[data-word="${p.word}"]`).forEach(e=>e.classList.add('crossed'));
       document.getElementById('prog').style.width=(foundSet.size/PLACEMENTS.length*100)+'%';
       saveProgress();
@@ -270,51 +185,52 @@ function tryMatch(sel){
   }
 }
 
-function onAllFound(){
-  SECRET_CELLS.forEach(([r,c])=>{const el=gc(r,c);if(el)el.classList.add('secret');});
+function onAllFound() {
+  SECRET_CELLS.forEach(([r,c])=>{ const el=gc(r,c); if(el) el.classList.add('secret'); });
   document.getElementById('note').innerHTML='🎉 Все слова найдены! Красные буквы — последняя подсказка. Собери из них слово!';
 }
 
-function useHint(){
-  if(hintUsed)return;
-  hintUsed=true;
-  document.getElementById('hintBtn').disabled=true;
-  document.getElementById('hintBtn').textContent='💡 Подсказка использована';
+function useHint() {
+  if(hintUsed) return;
+  hintUsed = true;
+  document.getElementById('hintBtn').disabled = true;
+  document.getElementById('hintBtn').textContent = '💡 Подсказка использована';
   trackEvent('hint_used');
   saveProgress();
-  const notFound=PLACEMENTS.find(p=>!foundSet.has(p.word));
-  if(notFound){
-    const[r,c]=notFound.cells[0];
-    const el=gc(r,c);
-    if(el){ el.style.background='#ffd54f'; el.style.color='#2c1a0e'; }
+  const notFound = PLACEMENTS.find(p=>!foundSet.has(p.word));
+  if(notFound) {
+    const [r,c] = notFound.cells[0];
+    const el = gc(r,c);
+    if(el) { el.style.background='#ffd54f'; el.style.color='#2c1a0e'; }
     if(tg) tg.showAlert(`💡 Подсказка: слово "${notFound.word}" начинается здесь`);
     else alert(`💡 Подсказка: слово "${notFound.word}" начинается здесь`);
   }
-  if(!IS_GUEST){
+  if(!IS_GUEST) {
     fetch(`${BASE_URL}/api/progress/${CASE_ID}/hint`,{method:'POST',headers:headers()}).catch(()=>{});
   }
 }
 
-function checkAnswers(){
-  const k=document.getElementById('inKiller').value.trim().toUpperCase();
-  const m=document.getElementById('inMethod').value.trim().toUpperCase();
-  const l=document.getElementById('inLocation').value.trim().toUpperCase();
-  const ki=document.getElementById('inKiller');
-  const me=document.getElementById('inMethod');
-  const lo=document.getElementById('inLocation');
-  let all=true;
-  function chk(inp,val,correct){
+function checkAnswers() {
+  const k = document.getElementById('inKiller').value.trim().toUpperCase();
+  const m = document.getElementById('inMethod').value.trim().toUpperCase();
+  const l = document.getElementById('inLocation').value.trim().toUpperCase();
+  const ki = document.getElementById('inKiller');
+  const me = document.getElementById('inMethod');
+  const lo = document.getElementById('inLocation');
+  let all = true;
+  function chk(inp,val,correct) {
     if(val===correct){inp.classList.add('ok');inp.classList.remove('bad');}
     else{inp.classList.add('bad');inp.classList.remove('ok');all=false;}
   }
   chk(ki,k,ANSWERS.killer);
   chk(me,m,ANSWERS.method);
   chk(lo,l,ANSWERS.location);
-  const res=document.getElementById('result');
-  if(all){
+  const res = document.getElementById('result');
+  if(all) {
     res.className='result ok';
     res.textContent='🎉 Дело раскрыто! Блестящая работа, детектив!';
     completeCase();
+    trackEvent('game_complete');
   } else {
     res.className='result bad';
     res.textContent='🔍 Не всё верно. Продолжай искать улики...';
@@ -324,28 +240,26 @@ function checkAnswers(){
 
 // ── RENDER ────────────────────────────────────────────────────
 
-function renderGame(caseData, saved){
+function renderGame(caseData, saved) {
   const config = caseData.puzzle_data;
+
+  // Берём готовую сетку из БД — не генерируем заново!
+  GAME_GRID    = config.grid;
+  PLACEMENTS   = config.placements;
+  SECRET_CELLS = config.secret_cells;
+  WORD_ORDER   = config.word_order;
+
   ANSWERS = {
     killer:   config.absent_words.killer,
     method:   config.absent_words.method,
     location: config.location_answer,
   };
 
-  const puzzle = buildPuzzle(config);
-  if(!puzzle){ document.getElementById('app').innerHTML='<div class="loading">Ошибка загрузки</div>'; return; }
-
-  GAME_GRID    = puzzle.grid;
-  PLACEMENTS   = puzzle.placements;
-  SECRET_CELLS = puzzle.secretCells;
-
   // Восстанавливаем прогресс
-  if(saved){
+  if(saved) {
     (saved.found_words||[]).forEach(w=>foundSet.add(w));
     hintUsed = saved.hint_used || false;
   }
-
-  const allWords = [...config.words_in_grid, config.absent_words.killer, config.absent_words.method];
 
   document.getElementById('app').innerHTML = `
     <div class="header">
@@ -374,13 +288,15 @@ function renderGame(caseData, saved){
     <div class="result" id="result"></div>
   `;
 
-  // Рендер сетки
+  // Рендер сетки из готовых данных
   const grid = document.getElementById('grid');
   for(let r=0;r<SIZE;r++)
-    for(let c=0;c<SIZE;c++){
-      const d=document.createElement('div');
-      d.className='cell'; d.textContent=GAME_GRID[r][c];
-      d.dataset.r=r; d.dataset.c=c;
+    for(let c=0;c<SIZE;c++) {
+      const d = document.createElement('div');
+      d.className = 'cell';
+      d.textContent = GAME_GRID[r][c];
+      d.dataset.r = r;
+      d.dataset.c = c;
       grid.appendChild(d);
     }
 
@@ -391,27 +307,28 @@ function renderGame(caseData, saved){
   grid.addEventListener('touchmove',e=>{e.preventDefault();if(!selecting)return;const p=posFromTouch(e);if(!p)return;curSel=getLine(startPos,p);highlight();},{passive:false});
   document.addEventListener('touchend',()=>{if(!selecting)return;selecting=false;tryMatch(curSel);clearSel();curSel=[];});
 
-  // Чипы слов
+  // Чипы в фиксированном порядке из БД
   const chipList = document.getElementById('chipList');
-  shuffle([...allWords]).forEach(word=>{
-    const d=document.createElement('div');
-    d.className='chip'+(foundSet.has(word)?' crossed':'');
-    d.dataset.word=word; d.textContent=word;
+  WORD_ORDER.forEach(word => {
+    const d = document.createElement('div');
+    d.className = 'chip' + (foundSet.has(word) ? ' crossed' : '');
+    d.dataset.word = word;
+    d.textContent = word;
     chipList.appendChild(d);
   });
 
-  // Восстанавливаем найденные слова визуально
-  if(foundSet.size>0){
-    PLACEMENTS.forEach(p=>{
+  // Восстанавливаем визуальный прогресс
+  if(foundSet.size > 0) {
+    PLACEMENTS.forEach(p => {
       if(foundSet.has(p.word))
-        p.cells.forEach(([r,c])=>{const el=gc(r,c);if(el)el.classList.add('found');});
+        p.cells.forEach(([r,c])=>{ const el=gc(r,c); if(el) el.classList.add('found'); });
     });
     document.getElementById('prog').style.width=(foundSet.size/PLACEMENTS.length*100)+'%';
     if(foundSet.size===PLACEMENTS.length) onAllFound();
   }
 }
 
-// ── INIT ──────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────
 
 try {
   const [caseRes, saved] = await Promise.all([
@@ -419,7 +336,7 @@ try {
     loadProgress()
   ]);
 
-  if(caseRes.error){
+  if(caseRes.error) {
     document.getElementById('app').innerHTML=`<div class="loading">❌ ${caseRes.error}</div>`;
   } else {
     renderGame(caseRes, saved);
