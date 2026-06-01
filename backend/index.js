@@ -5,6 +5,7 @@ import pool from './db.js';
 import casesRouter from './routes/cases.js';
 import progressRouter from './routes/progress.js';
 import analyticsRouter from './routes/analytics.js';
+import paymentRouter from './routes/payment.js';
 import { handleBotUpdate } from './bot.js';
 
 dotenv.config();
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use('/api/cases', casesRouter);
 app.use('/api/progress', progressRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/payment', paymentRouter);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
