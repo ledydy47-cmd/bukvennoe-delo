@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Буквенное дело — Как играть</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #f5f0e8;
+  font-family: 'Georgia', serif;
+  padding: 20px 16px 40px;
+  min-height: 100vh;
+}
+.wrap { max-width: 440px; margin: 0 auto; }
+.header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
+.brand { font-size: 20px; font-weight: bold; letter-spacing: 5px; color: #2c1a0e; border: 3px solid #2c1a0e; display: inline-block; padding: 4px 14px; margin-bottom: 6px; }
+.page-title { font-size: 20px; font-weight: bold; color: #2c1a0e; margin-top: 8px; }
+hr { border: none; border-top: 2px solid #2c1a0e; margin: 14px 0; }
+
+.step {
+  background: #fdf6ec;
+  border: 2px solid #2c1a0e;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.step-num {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2c1a0e;
+  width: 36px;
+  height: 36px;
+  border: 2px solid #2c1a0e;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.step-body {}
+.step-title { font-size: 15px; font-weight: bold; color: #2c1a0e; margin-bottom: 6px; }
+.step-text { font-size: 13px; color: #5a3e1b; line-height: 1.6; }
+
+.example-box {
+  background: #fff9e6;
+  border: 1.5px dashed #c8a84b;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #5a3e1b;
+  line-height: 1.7;
+}
+.example-box b { color: #2c1a0e; }
+
+.tip-box {
+  background: #fdf6ec;
+  border-left: 4px solid #c8a84b;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #5a3e1b;
+  line-height: 1.6;
+  border-radius: 0 4px 4px 0;
+}
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  background: #2c1a0e;
+  color: #f5f0e8;
+  border: none;
+  border-radius: 30px;
+  font-family: 'Georgia', serif;
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn:hover { background: #4a2c14; }
+
+.back-btn {
+  background: none; border: none; color: #6b4c2a;
+  font-size: 13px; cursor: pointer;
+  font-family: 'Georgia', serif;
+  margin-bottom: 14px; display: block;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="back-btn" onclick="window.location.href='index.html'">← Назад</button>
+
+  <div class="header">
+    <div class="brand">БУКВЕННОЕ ДЕЛО</div>
+    <div class="page-title">❓ Как играть</div>
+  </div>
+  <hr>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Ищи слова в сетке букв</div>
+      <div class="step-text">Проведи пальцем по буквам чтобы выделить слово. Слова могут идти в любом направлении — горизонтально, вертикально, по диагонали, в обе стороны. Одна буква может входить в два разных слова.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Найди 11 слов из 13</div>
+      <div class="step-text">В списке 13 слов, но только 11 из них спрятаны в сетке. Найденные слова зачёркиваются. Два слова которые не находятся в сетке — это убийца и орудие преступления.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Собери последнее слово</div>
+      <div class="step-text">После того как найдёшь все 11 слов, незачёркнутые буквы подсветятся красным. Собери из них слово — это место преступления.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-title">Введи ответы и раскрой дело</div>
+      <div class="step-text">Впиши убийцу, орудие и место в поля внизу экрана и нажми «Проверить ответы». Все три должны быть верными!</div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    💡 <b>Пример:</b> в списке есть ВИКТОР и ОТРАВА — но в сетке их нет. Значит убийца — <b>ВИКТОР</b>, орудие — <b>ОТРАВА</b>. После нахождения всех остальных слов красные буквы складываются в слово <b>БИБЛИОТЕКА</b> — это место преступления.
+  </div>
+
+  <div class="tip-box">
+    💡 <b>Подсказка:</b> в каждом деле есть одна подсказка — она подсветит первую букву ненайденного слова. Используй её если застрял!
+  </div>
+
+  <button class="btn" onclick="window.location.href='index.html'">🔤 Начать играть</button>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+</script>
+</body>
+</html>
