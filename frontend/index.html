@@ -22,7 +22,7 @@ body {
 .subtitle { font-size: 12px; letter-spacing: 2px; color: #6b4c2a; text-transform: uppercase; }
 hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
 
-.cases-list { display: flex; flex-direction: column; gap: 12px; }
+.cases-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
 
 .case-card {
   background: #fdf6ec; border: 2px solid #2c1a0e;
@@ -31,22 +31,18 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
   display: flex; align-items: center; gap: 12px;
 }
 .case-card:hover { background: #f0e4cc; }
-.case-card.locked { opacity: 0.7; cursor: default; }
+.case-card.locked { opacity: 0.75; }
 .case-card.completed { border-color: #27ae60; }
 
-.case-num {
-  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
-  color: #6b4c2a; margin-bottom: 2px;
-}
+.case-num { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #6b4c2a; margin-bottom: 2px; }
 .case-title { font-size: 16px; font-weight: bold; color: #2c1a0e; }
 .case-meta { font-size: 11px; color: #888; margin-top: 4px; }
-
 .case-icon { font-size: 28px; flex-shrink: 0; }
 .case-info { flex: 1; }
 
 .badge {
   font-size: 11px; font-weight: bold; padding: 3px 8px;
-  border-radius: 20px; flex-shrink: 0;
+  border-radius: 20px; flex-shrink: 0; white-space: nowrap;
 }
 .badge.free     { background: #c8e6c9; color: #1b5e20; }
 .badge.locked   { background: #ffcdd2; color: #b71c1c; }
@@ -55,28 +51,47 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
 
 .paywall {
   background: #fdf6ec; border: 2px solid #2c1a0e;
-  border-radius: 8px; padding: 20px; text-align: center;
-  margin-top: 20px;
+  border-radius: 10px; padding: 20px 16px; text-align: center;
+  margin-bottom: 20px;
 }
-.paywall h3 { font-size: 18px; color: #2c1a0e; margin-bottom: 8px; }
-.paywall p  { font-size: 13px; color: #6b4c2a; margin-bottom: 16px; line-height: 1.5; }
+.paywall-icon { font-size: 36px; margin-bottom: 10px; }
+.paywall h3 { font-size: 18px; color: #2c1a0e; margin-bottom: 8px; font-weight: bold; }
+.paywall p  { font-size: 13px; color: #6b4c2a; margin-bottom: 16px; line-height: 1.6; }
+
+.plans-preview { display: flex; gap: 10px; margin-bottom: 16px; }
+.plan-preview {
+  flex: 1; background: #f5f0e8; border: 1.5px solid #c8a880;
+  border-radius: 8px; padding: 12px 8px; text-align: center;
+}
+.plan-preview.highlight { border-color: #2c1a0e; background: #fff9f0; }
+.plan-price { font-size: 20px; font-weight: bold; color: #2c1a0e; }
+.plan-name  { font-size: 12px; color: #6b4c2a; margin-top: 2px; }
+.plan-desc  { font-size: 11px; color: #888; margin-top: 4px; }
 
 .btn {
-  width: 100%; padding: 13px; background: #2c1a0e; color: #f5f0e8;
-  border: none; border-radius: 30px; font-family: 'Georgia', serif;
+  width: 100%; padding: 14px; background: #2c1a0e; color: #f5f0e8;
+  border: none; border-radius: 30px; font-family: 'Georgia',serif;
   font-size: 15px; font-weight: bold; letter-spacing: 1px;
-  cursor: pointer; margin-bottom: 8px;
+  cursor: pointer; margin-bottom: 8px; transition: background .2s;
 }
 .btn:hover { background: #4a2c14; }
 .btn.secondary {
   background: transparent; color: #2c1a0e;
-  border: 2px solid #2c1a0e;
+  border: 2px solid #2c1a0e; padding: 12px;
 }
 
-.loading {
-  text-align: center; padding: 40px;
-  font-size: 14px; color: #6b4c2a;
+.sub-active {
+  background: #c8e6c9; border: 2px solid #27ae60;
+  border-radius: 8px; padding: 10px 14px; margin-bottom: 16px;
+  font-size: 13px; color: #1b5e20; text-align: center;
 }
+
+.footer-links {
+  text-align: center; font-size: 11px; color: #999; margin-top: 10px;
+}
+.footer-links a { color: #6b4c2a; margin: 0 6px; }
+
+.loading { text-align: center; padding: 40px; font-size: 14px; color: #6b4c2a; }
 </style>
 </head>
 <body>
@@ -86,8 +101,13 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
 </div>
 <hr>
 
-<div id="app">
-  <div class="loading">🔍 Загружаем дела...</div>
+<div id="subStatus"></div>
+<div id="app"><div class="loading">🔍 Загружаем дела...</div></div>
+
+<div class="footer-links">
+  <a href="privacy.html">Конфиденциальность</a>
+  <a href="terms.html">Соглашение</a>
+  <a href="subscribe.html">Подписка</a>
 </div>
 
 <script type="module">
@@ -113,9 +133,21 @@ async function loadCases() {
   try {
     const res = await fetch(`${BASE_URL}/api/cases`, { headers: headers() });
     return await res.json();
-  } catch {
-    return [];
-  }
+  } catch { return []; }
+}
+
+async function checkSubStatus() {
+  try {
+    const res = await fetch(`${BASE_URL}/api/payment/status`, { headers: headers() });
+    const data = await res.json();
+    const box = document.getElementById('subStatus');
+    if (data.subscription_type === 'lifetime') {
+      box.innerHTML = '<div class="sub-active">♾️ У вас вечный доступ — все дела открыты!</div>';
+    } else if (data.subscription_type === 'monthly' && data.subscription_expires_at) {
+      const exp = new Date(data.subscription_expires_at).toLocaleDateString('ru-RU');
+      box.innerHTML = `<div class="sub-active">✅ Подписка активна до ${exp}</div>`;
+    }
+  } catch {}
 }
 
 function getIcon(progress, access) {
@@ -135,11 +167,12 @@ function getBadge(progress, access, isFree) {
 
 function renderCases(cases) {
   const app = document.getElementById('app');
-
   if (!cases.length) {
     app.innerHTML = '<div class="loading">Дела не найдены</div>';
     return;
   }
+
+  const hasLocked = cases.some(c => c.access === 'locked');
 
   const list = cases.map(c => `
     <div class="case-card ${c.access === 'locked' ? 'locked' : ''} ${c.progress === 'completed' ? 'completed' : ''}"
@@ -150,48 +183,53 @@ function renderCases(cases) {
         <div class="case-title">${c.title}</div>
         <div class="case-meta">
           ${c.progress === 'in_progress' ? `Найдено слов: ${c.found_words?.length ?? 0}` : ''}
+          ${c.progress === 'completed' ? 'Дело раскрыто' : ''}
         </div>
       </div>
       ${getBadge(c.progress, c.access, c.is_free)}
     </div>
   `).join('');
 
-  const hasLocked = cases.some(c => c.access === 'locked');
-
-  app.innerHTML = `
-    <div class="cases-list">${list}</div>
-    ${hasLocked ? `
+  const paywall = hasLocked ? `
     <div class="paywall">
-      <h3>🔓 Открыть все дела</h3>
-      <p>Подписка даёт доступ ко всем делам и новым каждую неделю</p>
-      <button class="btn" onclick="showSubscribe()">💳 Оформить подписку</button>
-    </div>` : ''}
-  `;
+      <div class="paywall-icon">🔍</div>
+      <h3>Открой все дела</h3>
+      <p>Раскрывай новые преступления каждую неделю. Выбери подходящий тариф:</p>
+      <div class="plans-preview">
+        <div class="plan-preview">
+          <div class="plan-price">199 ₽</div>
+          <div class="plan-name">На месяц</div>
+          <div class="plan-desc">Все дела на 30 дней</div>
+        </div>
+        <div class="plan-preview highlight">
+          <div class="plan-price">990 ₽</div>
+          <div class="plan-name">Навсегда ⭐</div>
+          <div class="plan-desc">Все дела навсегда</div>
+        </div>
+      </div>
+      <button class="btn" onclick="goSubscribe()">🔓 Открыть все дела</button>
+    </div>
+  ` : '';
+
+  app.innerHTML = `<div class="cases-list">${list}</div>${paywall}`;
 }
 
 window.openCase = function(id, access) {
   if (access === 'locked') {
     trackEvent('paywall_shown');
-    showSubscribe();
+    goSubscribe();
     return;
   }
   trackEvent('game_start', { case_id: id });
   window.location.href = `game.html?id=${id}`;
 };
 
-window.showSubscribe = function() {
-  tg?.showPopup({
-    title: '🔓 Подписка',
-    message: 'Доступ ко всем делам.\n\n📅 Месяц — 199 ₽\n♾️ Навсегда — 990 ₽',
-    buttons: [
-      { id: 'monthly',  type: 'default', text: '📅 199 ₽ / месяц' },
-      { id: 'lifetime', type: 'default', text: '♾️ 990 ₽ навсегда' },
-      { id: 'cancel',   type: 'cancel'                             },
-    ]
-  });
+window.goSubscribe = function() {
+  window.location.href = 'subscribe.html';
 };
 
 trackEvent('app_open');
+await checkSubStatus();
 const cases = await loadCases();
 renderCases(cases);
 </script>

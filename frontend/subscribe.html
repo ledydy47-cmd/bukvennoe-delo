@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Буквенное дело — Подписка</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #f5f0e8;
+  font-family: 'Georgia', serif;
+  display: flex;
+  justify-content: center;
+  padding: 20px 16px 40px;
+  min-height: 100vh;
+}
+.wrap { max-width: 440px; width: 100%; }
+.header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
+.brand { font-size: 20px; font-weight: bold; letter-spacing: 5px; color: #2c1a0e; border: 3px solid #2c1a0e; display: inline-block; padding: 4px 14px; margin-bottom: 6px; }
+.page-title { font-size: 22px; font-weight: bold; color: #2c1a0e; margin-top: 8px; }
+.page-sub { font-size: 13px; color: #6b4c2a; margin-top: 4px; line-height: 1.6; }
+hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
+
+.free-box {
+  background: #fdf6ec; border: 2px solid #c8a880;
+  border-radius: 8px; padding: 16px; margin-bottom: 16px;
+}
+.free-box h3 { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #6b4c2a; margin-bottom: 12px; }
+.feature-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; color: #2c1a0e; }
+.feature-row:last-child { margin-bottom: 0; }
+.feature-icon { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0; }
+
+.plans { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+
+.plan-card {
+  background: #fdf6ec; border: 2px solid #2c1a0e;
+  border-radius: 10px; padding: 18px 16px;
+  cursor: pointer; transition: all 0.2s; position: relative;
+}
+.plan-card:hover { background: #f0e4cc; }
+.plan-card.selected { border-color: #c0392b; background: #fff5f5; }
+.plan-card.popular { border-color: #2c1a0e; }
+
+.popular-badge {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: #2c1a0e; color: #f5f0e8;
+  font-size: 11px; font-weight: bold; letter-spacing: 1px;
+  padding: 3px 12px; border-radius: 20px; text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.plan-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.plan-name { font-size: 17px; font-weight: bold; color: #2c1a0e; }
+.plan-price { text-align: right; }
+.plan-amount { font-size: 24px; font-weight: bold; color: #2c1a0e; }
+.plan-period { font-size: 12px; color: #6b4c2a; }
+
+.plan-features { display: flex; flex-direction: column; gap: 6px; }
+.plan-feature { font-size: 13px; color: #2c1a0e; display: flex; align-items: center; gap: 8px; }
+
+.plan-radio {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid #2c1a0e; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; margin-top: 2px;
+}
+.plan-card.selected .plan-radio { border-color: #c0392b; }
+.plan-radio-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #c0392b; display: none;
+}
+.plan-card.selected .plan-radio-dot { display: block; }
+
+.buy-btn {
+  width: 100%; padding: 16px; background: #2c1a0e; color: #f5f0e8;
+  border: none; border-radius: 30px; font-family: 'Georgia',serif;
+  font-size: 16px; font-weight: bold; letter-spacing: 2px;
+  cursor: pointer; text-transform: uppercase; transition: background .2s;
+  margin-bottom: 12px;
+}
+.buy-btn:hover { background: #4a2c14; }
+.buy-btn:disabled { background: #ccc; cursor: default; }
+
+.back-btn {
+  background: none; border: none; color: #6b4c2a;
+  font-size: 13px; cursor: pointer; font-family: 'Georgia',serif;
+  margin-bottom: 14px; display: block;
+}
+
+.legal {
+  font-size: 11px; color: #999; text-align: center; line-height: 1.6;
+}
+.legal a { color: #6b4c2a; }
+
+.status-box {
+  background: #c8e6c9; border: 2px solid #27ae60;
+  border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;
+  text-align: center;
+}
+.status-box h3 { font-size: 16px; color: #1b5e20; margin-bottom: 4px; }
+.status-box p  { font-size: 13px; color: #2e7d32; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="back-btn" onclick="window.location.href='index.html'">← Назад</button>
+
+  <div class="header">
+    <div class="brand">БУКВЕННОЕ ДЕЛО</div>
+    <div class="page-title">🔓 Открыть все дела</div>
+    <div class="page-sub">Раскрывай новые преступления каждую неделю.<br>Отменить подписку можно в любой момент.</div>
+  </div>
+  <hr>
+
+  <div id="statusBox"></div>
+
+  <div class="free-box">
+    <h3>🆓 Бесплатно доступно</h3>
+    <div class="feature-row"><div class="feature-icon">📋</div>Дела №1 и №2</div>
+    <div class="feature-row"><div class="feature-icon">💡</div>1 подсказка на каждое дело</div>
+    <div class="feature-row"><div class="feature-icon">💾</div>Сохранение прогресса</div>
+  </div>
+
+  <div class="plans" id="plans">
+    <div class="plan-card selected" id="plan-monthly" onclick="selectPlan('monthly')">
+      <div class="plan-top">
+        <div>
+          <div class="plan-name">📅 На месяц</div>
+        </div>
+        <div class="plan-price">
+          <div class="plan-amount">199 ₽</div>
+          <div class="plan-period">в месяц</div>
+        </div>
+      </div>
+      <div class="plan-features">
+        <div class="plan-feature">✅ Все текущие дела</div>
+        <div class="plan-feature">✅ Новые дела каждую неделю</div>
+        <div class="plan-feature">✅ Неограниченные подсказки</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">
+        <div class="plan-radio"><div class="plan-radio-dot"></div></div>
+      </div>
+    </div>
+
+    <div class="plan-card popular" id="plan-lifetime" onclick="selectPlan('lifetime')">
+      <div class="popular-badge">⭐ Выгоднее всего</div>
+      <div class="plan-top">
+        <div>
+          <div class="plan-name">♾️ Навсегда</div>
+        </div>
+        <div class="plan-price">
+          <div class="plan-amount">990 ₽</div>
+          <div class="plan-period">единоразово</div>
+        </div>
+      </div>
+      <div class="plan-features">
+        <div class="plan-feature">✅ Все текущие дела</div>
+        <div class="plan-feature">✅ Все будущие дела навсегда</div>
+        <div class="plan-feature">✅ Неограниченные подсказки</div>
+        <div class="plan-feature">✅ Приоритетная поддержка</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">
+        <div class="plan-radio"><div class="plan-radio-dot"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="buy-btn" id="buyBtn" onclick="startPayment()">
+    💳 Оформить за 199 ₽
+  </button>
+
+  <div class="legal">
+    Нажимая кнопку, вы соглашаетесь с
+    <a href="terms.html">условиями использования</a>
+    и <a href="privacy.html">политикой конфиденциальности</a>.<br>
+    Оплата через ЮKassa. Безопасно и надёжно.
+  </div>
+</div>
+
+<script>
+const BASE_URL = 'https://inspiring-friendship-production-bf42.up.railway.app';
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+const headers = () => ({
+  'Content-Type': 'application/json',
+  'X-Init-Data': tg?.initData ?? '',
+});
+
+let selectedPlan = 'monthly';
+
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.getElementById('plan-monthly').classList.toggle('selected', plan === 'monthly');
+  document.getElementById('plan-lifetime').classList.toggle('selected', plan === 'lifetime');
+  const prices = { monthly: '199 ₽', lifetime: '990 ₽' };
+  document.getElementById('buyBtn').textContent = `💳 Оформить за ${prices[plan]}`;
+}
+
+async function startPayment() {
+  const btn = document.getElementById('buyBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Создаём платёж...';
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/payment/create`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ plan: selectedPlan }),
+    });
+    const data = await res.json();
+
+    if (data.payment_url) {
+      // Открываем страницу оплаты ЮКассы
+      if (tg) {
+        tg.openLink(data.payment_url);
+      } else {
+        window.open(data.payment_url, '_blank');
+      }
+      btn.disabled = false;
+      btn.textContent = selectedPlan === 'monthly' ? '💳 Оформить за 199 ₽' : '💳 Оформить за 990 ₽';
+    } else if (data.error) {
+      if (tg) tg.showAlert('Ошибка: ' + data.error);
+      else alert('Ошибка: ' + data.error);
+      btn.disabled = false;
+      btn.textContent = selectedPlan === 'monthly' ? '💳 Оформить за 199 ₽' : '💳 Оформить за 990 ₽';
+    }
+  } catch(e) {
+    if (tg) tg.showAlert('Ошибка соединения. Попробуй позже.');
+    else alert('Ошибка соединения');
+    btn.disabled = false;
+    btn.textContent = selectedPlan === 'monthly' ? '💳 Оформить за 199 ₽' : '💳 Оформить за 990 ₽';
+  }
+}
+
+// Проверяем текущий статус подписки
+async function checkStatus() {
+  try {
+    const res = await fetch(`${BASE_URL}/api/payment/status`, { headers: headers() });
+    const data = await res.json();
+    const box = document.getElementById('statusBox');
+
+    if (data.subscription_type === 'lifetime') {
+      box.innerHTML = `
+        <div class="status-box">
+          <h3>♾️ У вас вечный доступ</h3>
+          <p>Все дела открыты навсегда. Спасибо!</p>
+        </div>`;
+      document.getElementById('plans').style.display = 'none';
+      document.getElementById('buyBtn').style.display = 'none';
+    } else if (data.subscription_type === 'monthly' && data.subscription_expires_at) {
+      const exp = new Date(data.subscription_expires_at).toLocaleDateString('ru-RU');
+      box.innerHTML = `
+        <div class="status-box">
+          <h3>✅ Подписка активна</h3>
+          <p>Действует до ${exp}</p>
+        </div>`;
+    }
+  } catch {}
+}
+
+checkStatus();
+</script>
+</body>
+</html>
