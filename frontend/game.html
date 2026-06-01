@@ -76,6 +76,12 @@ const headers = () => ({
 const params  = new URLSearchParams(window.location.search);
 const CASE_ID = params.get('id');
 
+// Определяем гостевой режим
+const IS_GUEST = !tg?.initData;
+
+// localStorage ключ для гостя
+const LS_KEY = `progress_case_${CASE_ID}`;
+
 let GAME_GRID = [], PLACEMENTS = [], SECRET_CELLS = [];
 let ANSWERS = {};
 let foundSet = new Set();
@@ -87,41 +93,58 @@ const SIZE = 10;
 const DIRS = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
 const RU_FILL = 'АБВГДЖЗИКЛМНПРСТУФХЦЧШЩЫЭЮЯ';
 
+// ── ПРОГРЕСС ──────────────────────────────────────────────────
+
+async function loadProgress() {
+  if (IS_GUEST) {
+    try { return JSON.parse(localStorage.getItem(LS_KEY)) ?? null; } catch { return null; }
+  }
+  try {
+    const res = await fetch(`${BASE_URL}/api/progress/${CASE_ID}`, { headers: headers() });
+    return res.ok ? await res.json() : null;
+  } catch { return null; }
+}
+
+async function saveProgress() {
+  const data = {
+    found_words:   [...foundSet],
+    hint_used:     hintUsed,
+    answers:       getCurrentAnswers(),
+    time_spent_sec: Math.floor((Date.now() - startTime) / 1000),
+  };
+  if (IS_GUEST) {
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+    return;
+  }
+  try {
+    await fetch(`${BASE_URL}/api/progress/${CASE_ID}`, {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify(data),
+    });
+  } catch {}
+}
+
+async function completeCase() {
+  const answers = getCurrentAnswers();
+  if (IS_GUEST) {
+    const saved = JSON.parse(localStorage.getItem(LS_KEY) ?? '{}');
+    localStorage.setItem(LS_KEY, JSON.stringify({ ...saved, status: 'completed', answers }));
+    return;
+  }
+  try {
+    await fetch(`${BASE_URL}/api/progress/${CASE_ID}/complete`, {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({ answers }),
+    });
+  } catch {}
+}
+
 async function trackEvent(event, meta = {}) {
   try {
     await fetch(`${BASE_URL}/api/analytics/event`, {
       method: 'POST', headers: headers(),
       body: JSON.stringify({ event, case_id: CASE_ID, meta }),
     });
-  } catch {}
-}
-
-async function loadCase() {
-  const res = await fetch(`${BASE_URL}/api/cases/${CASE_ID}`, { headers: headers() });
-  return res.json();
-}
-
-async function saveProgress() {
-  try {
-    await fetch(`${BASE_URL}/api/progress/${CASE_ID}`, {
-      method: 'POST', headers: headers(),
-      body: JSON.stringify({
-        found_words: [...foundSet],
-        hint_used: hintUsed,
-        answers: getCurrentAnswers(),
-        time_spent_sec: Math.floor((Date.now() - startTime) / 1000),
-      }),
-    });
-  } catch {}
-}
-
-async function completeCase() {
-  try {
-    await fetch(`${BASE_URL}/api/progress/${CASE_ID}/complete`, {
-      method: 'POST', headers: headers(),
-      body: JSON.stringify({ answers: getCurrentAnswers() }),
-    });
-    trackEvent('game_complete', { time_sec: Math.floor((Date.now() - startTime) / 1000) });
   } catch {}
 }
 
@@ -133,7 +156,8 @@ function getCurrentAnswers() {
   };
 }
 
-// PUZZLE ENGINE
+// ── PUZZLE ENGINE ─────────────────────────────────────────────
+
 function shuffle(a) {
   for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
   return a;
@@ -165,13 +189,11 @@ function isLine(cells) {
 
 function buildPuzzle(config) {
   const { words_in_grid, location_answer } = config;
-
   for(let attempt=0;attempt<1000;attempt++){
     const g=makeEmpty();
     const placements=[];
     let ok=true;
     const words=shuffle([...words_in_grid]);
-
     for(const word of words){
       const options=[];
       for(let r=0;r<SIZE;r++)
@@ -184,40 +206,34 @@ function buildPuzzle(config) {
       placements.push({word,cells:doPlace(g,word,r,c,dr,dc)});
     }
     if(!ok) continue;
-
     const usedSet=new Set();
     placements.forEach(p=>p.cells.forEach(([r,c])=>usedSet.add(`${r},${c}`)));
     const free=[];
     for(let r=0;r<SIZE;r++)
       for(let c=0;c<SIZE;c++)
         if(!usedSet.has(`${r},${c}`)) free.push([r,c]);
-
     if(free.length<location_answer.length) continue;
-
     shuffle(free);
     let secretCells=free.slice(0,location_answer.length);
     let tries=0;
     while(isLine(secretCells)&&tries<50){ shuffle(free); secretCells=free.slice(0,location_answer.length); tries++; }
     if(isLine(secretCells)) continue;
-
     const locLetters=[...location_answer];
     secretCells.forEach(([r,c],i)=>g[r][c]=locLetters[i]);
-
     const safeFill=RU_FILL.split('').filter(ch=>![...location_answer].includes(ch));
     for(let r=0;r<SIZE;r++)
       for(let c=0;c<SIZE;c++)
         if(g[r][c]===null) g[r][c]=safeFill[Math.floor(Math.random()*safeFill.length)];
-
     return{grid:g,placements,secretCells};
   }
   return null;
 }
 
-// GRID INTERACTION
+// ── GRID INTERACTION ──────────────────────────────────────────
+
 function gc(r,c){return document.querySelector(`#grid .cell[data-r="${r}"][data-c="${c}"]`);}
 function posFromEl(el){if(!el||el.dataset.r===undefined)return null;return{r:+el.dataset.r,c:+el.dataset.c};}
 function posFromTouch(e){const t=e.touches[0];return posFromEl(document.elementFromPoint(t.clientX,t.clientY));}
-
 function getLine(a,b){
   const dr=b.r-a.r,dc=b.c-a.c;
   if(!dr&&!dc)return[a];
@@ -228,7 +244,6 @@ function getLine(a,b){
   for(let i=0;i<=n;i++)res.push({r:a.r+sr*i,c:a.c+sc*i});
   return res;
 }
-
 function highlight(){
   clearSel();
   curSel.forEach(({r,c})=>{const el=gc(r,c);if(el&&!el.classList.contains('found'))el.classList.add('sel');});
@@ -267,20 +282,17 @@ function useHint(){
   document.getElementById('hintBtn').textContent='💡 Подсказка использована';
   trackEvent('hint_used');
   saveProgress();
-
-  // Находим первое ненайденное слово и подсвечиваем первую букву
   const notFound=PLACEMENTS.find(p=>!foundSet.has(p.word));
   if(notFound){
     const[r,c]=notFound.cells[0];
     const el=gc(r,c);
-    if(el){
-      el.style.background='#ffd54f';
-      el.style.color='#2c1a0e';
-      tg?.showAlert(`💡 Подсказка: слово "${notFound.word}" начинается с буквы "${GAME_GRID[r][c]}" в этом месте`);
-    }
+    if(el){ el.style.background='#ffd54f'; el.style.color='#2c1a0e'; }
+    if(tg) tg.showAlert(`💡 Подсказка: слово "${notFound.word}" начинается здесь`);
+    else alert(`💡 Подсказка: слово "${notFound.word}" начинается здесь`);
   }
-
-  fetch(`${BASE_URL}/api/progress/${CASE_ID}/hint`,{method:'POST',headers:headers()});
+  if(!IS_GUEST){
+    fetch(`${BASE_URL}/api/progress/${CASE_ID}/hint`,{method:'POST',headers:headers()}).catch(()=>{});
+  }
 }
 
 function checkAnswers(){
@@ -310,7 +322,9 @@ function checkAnswers(){
   saveProgress();
 }
 
-function renderGame(caseData){
+// ── RENDER ────────────────────────────────────────────────────
+
+function renderGame(caseData, saved){
   const config = caseData.puzzle_data;
   ANSWERS = {
     killer:   config.absent_words.killer,
@@ -326,7 +340,6 @@ function renderGame(caseData){
   SECRET_CELLS = puzzle.secretCells;
 
   // Восстанавливаем прогресс
-  const saved = caseData.progress;
   if(saved){
     (saved.found_words||[]).forEach(w=>foundSet.add(w));
     hintUsed = saved.hint_used || false;
@@ -388,7 +401,7 @@ function renderGame(caseData){
   });
 
   // Восстанавливаем найденные слова визуально
-  if(saved && saved.found_words?.length){
+  if(foundSet.size>0){
     PLACEMENTS.forEach(p=>{
       if(foundSet.has(p.word))
         p.cells.forEach(([r,c])=>{const el=gc(r,c);if(el)el.classList.add('found');});
@@ -398,13 +411,19 @@ function renderGame(caseData){
   }
 }
 
-// INIT
+// ── INIT ──────────────────────────────────────────────────────
+
 try {
-  const caseData = await loadCase();
-  if(caseData.error){
-    document.getElementById('app').innerHTML=`<div class="loading">❌ ${caseData.error}</div>`;
+  const [caseRes, saved] = await Promise.all([
+    fetch(`${BASE_URL}/api/cases/${CASE_ID}`, { headers: headers() }).then(r=>r.json()),
+    loadProgress()
+  ]);
+
+  if(caseRes.error){
+    document.getElementById('app').innerHTML=`<div class="loading">❌ ${caseRes.error}</div>`;
   } else {
-    renderGame(caseData);
+    renderGame(caseRes, saved);
+    trackEvent('game_start');
   }
 } catch(e) {
   document.getElementById('app').innerHTML='<div class="loading">❌ Ошибка загрузки</div>';
