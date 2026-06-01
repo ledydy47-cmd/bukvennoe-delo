@@ -34,12 +34,12 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
 .plans { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
 
 .plan-card {
-  background: #fdf6ec; border: 2px solid #2c1a0e;
+  background: #fdf6ec; border: 2px solid #c8a880;
   border-radius: 10px; padding: 18px 16px;
   cursor: pointer; transition: all 0.2s; position: relative;
 }
-.plan-card:hover { background: #f0e4cc; }
-.plan-card.selected { border-color: #c0392b; background: #fff5f5; }
+.plan-card:hover { background: #f0e4cc; border-color: #2c1a0e; }
+.plan-card.selected { border-color: #2c1a0e; background: #f5ede0; }
 .plan-card.popular { border-color: #2c1a0e; }
 
 .popular-badge {
@@ -55,19 +55,19 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
 .plan-price { text-align: right; }
 .plan-amount { font-size: 24px; font-weight: bold; color: #2c1a0e; }
 .plan-period { font-size: 12px; color: #6b4c2a; }
-
 .plan-features { display: flex; flex-direction: column; gap: 6px; }
 .plan-feature { font-size: 13px; color: #2c1a0e; display: flex; align-items: center; gap: 8px; }
 
 .plan-radio {
   width: 20px; height: 20px; border-radius: 50%;
-  border: 2px solid #2c1a0e; display: flex; align-items: center;
-  justify-content: center; flex-shrink: 0; margin-top: 2px;
+  border: 2px solid #c8a880; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; margin-top: 10px;
+  float: right; transition: border-color .2s;
 }
-.plan-card.selected .plan-radio { border-color: #c0392b; }
+.plan-card.selected .plan-radio { border-color: #2c1a0e; }
 .plan-radio-dot {
   width: 10px; height: 10px; border-radius: 50%;
-  background: #c0392b; display: none;
+  background: #2c1a0e; display: none;
 }
 .plan-card.selected .plan-radio-dot { display: block; }
 
@@ -79,7 +79,7 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
   margin-bottom: 12px;
 }
 .buy-btn:hover { background: #4a2c14; }
-.buy-btn:disabled { background: #ccc; cursor: default; }
+.buy-btn:disabled { background: #bbb; cursor: default; }
 
 .back-btn {
   background: none; border: none; color: #6b4c2a;
@@ -87,18 +87,21 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
   margin-bottom: 14px; display: block;
 }
 
-.legal {
-  font-size: 11px; color: #999; text-align: center; line-height: 1.6;
-}
+.legal { font-size: 11px; color: #999; text-align: center; line-height: 1.6; }
 .legal a { color: #6b4c2a; }
 
 .status-box {
   background: #c8e6c9; border: 2px solid #27ae60;
-  border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;
-  text-align: center;
+  border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; text-align: center;
 }
 .status-box h3 { font-size: 16px; color: #1b5e20; margin-bottom: 4px; }
 .status-box p  { font-size: 13px; color: #2e7d32; }
+
+.coming-soon {
+  background: #fff9e6; border: 2px dashed #c8a84b;
+  border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;
+  text-align: center; font-size: 13px; color: #5a3e1b; line-height: 1.6;
+}
 </style>
 </head>
 <body>
@@ -122,11 +125,9 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
   </div>
 
   <div class="plans" id="plans">
-    <div class="plan-card selected" id="plan-monthly" onclick="selectPlan('monthly')">
+    <div class="plan-card" id="plan-monthly" onclick="selectPlan('monthly')">
       <div class="plan-top">
-        <div>
-          <div class="plan-name">📅 На месяц</div>
-        </div>
+        <div class="plan-name">📅 На месяц</div>
         <div class="plan-price">
           <div class="plan-amount">199 ₽</div>
           <div class="plan-period">в месяц</div>
@@ -137,17 +138,13 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
         <div class="plan-feature">✅ Новые дела каждую неделю</div>
         <div class="plan-feature">✅ Неограниченные подсказки</div>
       </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:10px">
-        <div class="plan-radio"><div class="plan-radio-dot"></div></div>
-      </div>
+      <div class="plan-radio"><div class="plan-radio-dot"></div></div>
     </div>
 
     <div class="plan-card popular" id="plan-lifetime" onclick="selectPlan('lifetime')">
       <div class="popular-badge">⭐ Выгоднее всего</div>
       <div class="plan-top">
-        <div>
-          <div class="plan-name">♾️ Навсегда</div>
-        </div>
+        <div class="plan-name">♾️ Навсегда</div>
         <div class="plan-price">
           <div class="plan-amount">990 ₽</div>
           <div class="plan-period">единоразово</div>
@@ -159,9 +156,7 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
         <div class="plan-feature">✅ Неограниченные подсказки</div>
         <div class="plan-feature">✅ Приоритетная поддержка</div>
       </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:10px">
-        <div class="plan-radio"><div class="plan-radio-dot"></div></div>
-      </div>
+      <div class="plan-radio"><div class="plan-radio-dot"></div></div>
     </div>
   </div>
 
@@ -187,58 +182,39 @@ const headers = () => ({
   'X-Init-Data': tg?.initData ?? '',
 });
 
-let selectedPlan = 'monthly';
+let selectedPlan = null;
 
 function selectPlan(plan) {
   selectedPlan = plan;
   document.getElementById('plan-monthly').classList.toggle('selected', plan === 'monthly');
   document.getElementById('plan-lifetime').classList.toggle('selected', plan === 'lifetime');
   const prices = { monthly: '199 ₽', lifetime: '990 ₽' };
-  document.getElementById('buyBtn').textContent = `💳 Оформить за ${prices[plan]}`;
+  const btn = document.getElementById('buyBtn');
+  btn.disabled = false;
+  btn.textContent = `💳 Оформить за ${prices[plan]}`;
 }
 
-async function startPayment() {
-  const btn = document.getElementById('buyBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Создаём платёж...';
+function startPayment() {
+  if (!selectedPlan) {
+    if (tg) tg.showAlert('Выбери тариф');
+    else alert('Выбери тариф');
+    return;
+  }
 
-  try {
-    const res = await fetch(`${BASE_URL}/api/payment/create`, {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ plan: selectedPlan }),
-    });
-    const data = await res.json();
-
-    if (data.payment_url) {
-      // Открываем страницу оплаты ЮКассы
-      if (tg) {
-        tg.openLink(data.payment_url);
-      } else {
-        window.open(data.payment_url, '_blank');
-      }
-      btn.disabled = false;
-      btn.textContent = selectedPlan === 'monthly' ? '💳 Оформить за 199 ₽' : '💳 Оформить за 990 ₽';
-    } else if (data.error) {
-      if (tg) tg.showAlert('Ошибка: ' + data.error);
-      else alert('Ошибка: ' + data.error);
-      btn.disabled = false;
-      btn.textContent = selectedPlan === 'monthly' ? '💳 Оформить за 199 ₽' : '💳 Оформить за 990 ₽';
-    }
-  } catch(e) {
-    if (tg) tg.showAlert('Ошибка соединения. Попробуй позже.');
-    else alert('Ошибка соединения');
-    btn.disabled = false;
-    btn.textContent = selectedPlan === 'monthly' ? '💳 Оформить за 199 ₽' : '💳 Оформить за 990 ₽';
+  // Оплата появится после подключения ЮКассы
+  if (tg) {
+    tg.showAlert('⏳ Оплата появится совсем скоро! Следи за обновлениями.');
+  } else {
+    alert('⏳ Оплата появится совсем скоро!');
   }
 }
 
-// Проверяем текущий статус подписки
 async function checkStatus() {
   try {
     const res = await fetch(`${BASE_URL}/api/payment/status`, { headers: headers() });
     const data = await res.json();
     const box = document.getElementById('statusBox');
+    const btn = document.getElementById('buyBtn');
 
     if (data.subscription_type === 'lifetime') {
       box.innerHTML = `
@@ -247,7 +223,7 @@ async function checkStatus() {
           <p>Все дела открыты навсегда. Спасибо!</p>
         </div>`;
       document.getElementById('plans').style.display = 'none';
-      document.getElementById('buyBtn').style.display = 'none';
+      btn.style.display = 'none';
     } else if (data.subscription_type === 'monthly' && data.subscription_expires_at) {
       const exp = new Date(data.subscription_expires_at).toLocaleDateString('ru-RU');
       box.innerHTML = `
@@ -258,6 +234,10 @@ async function checkStatus() {
     }
   } catch {}
 }
+
+// Кнопка неактивна пока не выбран тариф
+document.getElementById('buyBtn').disabled = true;
+document.getElementById('buyBtn').textContent = '💳 Выбери тариф';
 
 checkStatus();
 </script>
