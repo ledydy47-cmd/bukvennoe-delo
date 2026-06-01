@@ -18,12 +18,11 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 8px 0; }
 .prog-wrap { background: #ddd0b0; border-radius: 10px; height: 6px; margin-bottom: 10px; overflow: hidden; }
 .prog-bar { height: 100%; background: #2c1a0e; border-radius: 10px; transition: width .4s; width: 0%; }
 .grid-box { background: #fdf6ec; border: 3px solid #2c1a0e; padding: 8px; margin-bottom: 12px; border-radius: 4px; }
-.grid { display: grid; grid-template-columns: repeat(10,1fr); gap: 2px; user-select: none; }
-.cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: #2c1a0e; cursor: pointer; border-radius: 3px; transition: background .1s; -webkit-tap-highlight-color: transparent; }
-.cell:hover { background: #e8d5b0; }
-.cell.sel { background: #f0c060 !important; }
-.cell.found { background: #b8ddb8; color: #145214; }
+.grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 3px; user-select: none; }
+.cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: #2c1a0e; cursor: pointer; border-radius: 3px; transition: background .1s; -webkit-tap-highlight-color: transparent; background: #b8ddb8; }
 .cell.secret { background: #ffd0d0; color: #7a0000; font-weight: 900; }
+.cell.sel { background: #f0c060 !important; color: #2c1a0e !important; }
+.cell.found { background: #7ec87e; color: #0a3d0a; }
 .words-box { background: #fdf6ec; border: 2px solid #2c1a0e; border-radius: 4px; padding: 12px 14px; margin-bottom: 12px; }
 .words-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #6b4c2a; margin-bottom: 10px; text-align: center; }
 .words-flow { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
@@ -48,6 +47,8 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 8px 0; }
 .result.bad { background: #ffcdd2; color: #b71c1c; display: block; }
 .back-btn { background: none; border: none; color: #6b4c2a; font-size: 13px; cursor: pointer; margin-bottom: 10px; font-family: 'Georgia',serif; }
 .loading { text-align: center; padding: 40px; font-size: 14px; color: #6b4c2a; }
+.legend { display: flex; gap: 12px; justify-content: center; margin-bottom: 8px; font-size: 11px; color: #6b4c2a; }
+.legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -70,15 +71,13 @@ const CASE_ID = params.get('id');
 const IS_GUEST = !tg?.initData;
 const LS_KEY = `progress_case_${CASE_ID}`;
 
-const SIZE = 10;
+const SIZE = 8;
 let GAME_GRID = [], PLACEMENTS = [], SECRET_CELLS = [], WORD_ORDER = [];
 let ANSWERS = {};
 let foundSet = new Set();
 let hintUsed = false;
 let startTime = Date.now();
 let selecting = false, startPos = null, curSel = [];
-
-// ── ПРОГРЕСС ─────────────────────────────────────────────────
 
 async function loadProgress() {
   if (IS_GUEST) {
@@ -97,14 +96,10 @@ async function saveProgress() {
     answers:        getCurrentAnswers(),
     time_spent_sec: Math.floor((Date.now() - startTime) / 1000),
   };
-  if (IS_GUEST) {
-    localStorage.setItem(LS_KEY, JSON.stringify(data));
-    return;
-  }
+  if (IS_GUEST) { localStorage.setItem(LS_KEY, JSON.stringify(data)); return; }
   try {
     await fetch(`${BASE_URL}/api/progress/${CASE_ID}`, {
-      method: 'POST', headers: headers(),
-      body: JSON.stringify(data),
+      method: 'POST', headers: headers(), body: JSON.stringify(data),
     });
   } catch {}
 }
@@ -118,8 +113,7 @@ async function completeCase() {
   }
   try {
     await fetch(`${BASE_URL}/api/progress/${CASE_ID}/complete`, {
-      method: 'POST', headers: headers(),
-      body: JSON.stringify({ answers }),
+      method: 'POST', headers: headers(), body: JSON.stringify({ answers }),
     });
   } catch {}
 }
@@ -128,8 +122,7 @@ async function trackEvent(event, meta = {}) {
   if (IS_GUEST) return;
   try {
     await fetch(`${BASE_URL}/api/analytics/event`, {
-      method: 'POST', headers: headers(),
-      body: JSON.stringify({ event, case_id: CASE_ID, meta }),
+      method: 'POST', headers: headers(), body: JSON.stringify({ event, case_id: CASE_ID, meta }),
     });
   } catch {}
 }
@@ -141,8 +134,6 @@ function getCurrentAnswers() {
     location: document.getElementById('inLocation')?.value ?? '',
   };
 }
-
-// ── GRID ─────────────────────────────────────────────────────
 
 function gc(r,c) { return document.querySelector(`#grid .cell[data-r="${r}"][data-c="${c}"]`); }
 function posFromEl(el) { if(!el||el.dataset.r===undefined)return null; return{r:+el.dataset.r,c:+el.dataset.c}; }
@@ -161,7 +152,7 @@ function getLine(a,b) {
 
 function highlight() {
   clearSel();
-  curSel.forEach(({r,c})=>{ const el=gc(r,c); if(el&&!el.classList.contains('found')) el.classList.add('sel'); });
+  curSel.forEach(({r,c})=>{ const el=gc(r,c); if(el) el.classList.add('sel'); });
 }
 function clearSel() { document.querySelectorAll('.cell.sel').forEach(e=>e.classList.remove('sel')); }
 function ck(r,c) { return`${r},${c}`; }
@@ -186,8 +177,7 @@ function tryMatch(sel) {
 }
 
 function onAllFound() {
-  SECRET_CELLS.forEach(([r,c])=>{ const el=gc(r,c); if(el) el.classList.add('secret'); });
-  document.getElementById('note').innerHTML='🎉 Все слова найдены! Красные буквы — последняя подсказка. Собери из них слово!';
+  document.getElementById('note').innerHTML='🎉 Все слова найдены! Красные буквы — последняя подсказка. Собери из них слово — это место преступления!';
 }
 
 function useHint() {
@@ -238,28 +228,25 @@ function checkAnswers() {
   saveProgress();
 }
 
-// ── RENDER ────────────────────────────────────────────────────
-
 function renderGame(caseData, saved) {
   const config = caseData.puzzle_data;
-
-  // Берём готовую сетку из БД — не генерируем заново!
   GAME_GRID    = config.grid;
   PLACEMENTS   = config.placements;
   SECRET_CELLS = config.secret_cells;
   WORD_ORDER   = config.word_order;
-
   ANSWERS = {
     killer:   config.absent_words.killer,
     method:   config.absent_words.method,
     location: config.location_answer,
   };
 
-  // Восстанавливаем прогресс
   if(saved) {
     (saved.found_words||[]).forEach(w=>foundSet.add(w));
     hintUsed = saved.hint_used || false;
   }
+
+  const secretSet = new Set(SECRET_CELLS.map(([r,c])=>`${r},${c}`));
+  const totalWords = PLACEMENTS.length;
 
   document.getElementById('app').innerHTML = `
     <div class="header">
@@ -268,12 +255,16 @@ function renderGame(caseData, saved) {
       <div class="case-name">«${caseData.title}»</div>
     </div>
     <hr>
-    <div class="hint-box">💡 Найди <b>11 слов</b> из 13. <b>2 слова отсутствуют в сетке</b> — они часть разгадки. Из оставшихся букв сложится последний ответ.</div>
+    <div class="hint-box">💡 Найди <b>${totalWords} слов</b> из ${WORD_ORDER.length}. <b>2 слова отсутствуют в сетке</b> — они часть разгадки. Красные буквы укажут место преступления.</div>
     <div class="prog-wrap"><div class="prog-bar" id="prog"></div></div>
+    <div class="legend">
+      <span><span class="legend-dot" style="background:#b8ddb8"></span>Слова для поиска</span>
+      <span><span class="legend-dot" style="background:#ffd0d0"></span>Буквы места</span>
+    </div>
     <div class="grid-box"><div class="grid" id="grid"></div></div>
-    <div class="note" id="note">🔍 Найди все 11 слов — оставшиеся буквы укажут на разгадку!</div>
+    <div class="note" id="note">🔍 Найди все ${totalWords} слов — красные буквы укажут место преступления!</div>
     <div class="words-box">
-      <div class="words-title">📋 Слова для поиска (13)</div>
+      <div class="words-title">📋 Слова для поиска (${WORD_ORDER.length})</div>
       <div class="words-flow" id="chipList"></div>
     </div>
     <div class="ans-box">
@@ -288,17 +279,18 @@ function renderGame(caseData, saved) {
     <div class="result" id="result"></div>
   `;
 
-  // Рендер сетки из готовых данных
   const grid = document.getElementById('grid');
-  for(let r=0;r<SIZE;r++)
+  for(let r=0;r<SIZE;r++) {
     for(let c=0;c<SIZE;c++) {
       const d = document.createElement('div');
-      d.className = 'cell';
+      const key = `${r},${c}`;
+      d.className = secretSet.has(key) ? 'cell secret' : 'cell';
       d.textContent = GAME_GRID[r][c];
       d.dataset.r = r;
       d.dataset.c = c;
       grid.appendChild(d);
     }
+  }
 
   grid.addEventListener('mousedown',e=>{const p=posFromEl(e.target);if(!p)return;selecting=true;startPos=p;curSel=[p];highlight();});
   grid.addEventListener('mouseover',e=>{if(!selecting)return;const p=posFromEl(e.target);if(!p)return;curSel=getLine(startPos,p);highlight();});
@@ -307,7 +299,6 @@ function renderGame(caseData, saved) {
   grid.addEventListener('touchmove',e=>{e.preventDefault();if(!selecting)return;const p=posFromTouch(e);if(!p)return;curSel=getLine(startPos,p);highlight();},{passive:false});
   document.addEventListener('touchend',()=>{if(!selecting)return;selecting=false;tryMatch(curSel);clearSel();curSel=[];});
 
-  // Чипы в фиксированном порядке из БД
   const chipList = document.getElementById('chipList');
   WORD_ORDER.forEach(word => {
     const d = document.createElement('div');
@@ -317,7 +308,6 @@ function renderGame(caseData, saved) {
     chipList.appendChild(d);
   });
 
-  // Восстанавливаем визуальный прогресс
   if(foundSet.size > 0) {
     PLACEMENTS.forEach(p => {
       if(foundSet.has(p.word))
@@ -328,14 +318,11 @@ function renderGame(caseData, saved) {
   }
 }
 
-// ── INIT ─────────────────────────────────────────────────────
-
 try {
   const [caseRes, saved] = await Promise.all([
     fetch(`${BASE_URL}/api/cases/${CASE_ID}`, { headers: headers() }).then(r=>r.json()),
     loadProgress()
   ]);
-
   if(caseRes.error) {
     document.getElementById('app').innerHTML=`<div class="loading">❌ ${caseRes.error}</div>`;
   } else {
