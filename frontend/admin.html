@@ -11,48 +11,64 @@ h1 { text-align: center; color: #c9a84c; margin-bottom: 30px; font-size: 24px; l
 h2 { color: #c9a84c; margin-bottom: 15px; font-size: 18px; }
 .container { max-width: 1200px; margin: 0 auto; }
 .card { background: #2c2c4a; border: 1px solid #c9a84c44; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-.row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
-label { display: block; color: #c9a84c; font-size: 13px; margin-bottom: 6px; }
-input, select, textarea { background: #1a1a2e; border: 1px solid #c9a84c66; color: #e8e0d0; border-radius: 8px; padding: 10px 14px; font-size: 14px; font-family: inherit; }
-input:focus, select:focus, textarea:focus { outline: none; border-color: #c9a84c; }
-textarea { width: 100%; min-height: 80px; resize: vertical; }
-.btn { background: #c9a84c; color: #1a1a2e; border: none; border-radius: 8px; padding: 12px 24px; font-size: 15px; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.2s; }
-.btn:hover { background: #e8c76a; }
-.btn-danger { background: #c94c4c; color: white; }
-.btn-danger:hover { background: #e86a6a; }
-.btn-green { background: #4caf50; color: white; }
-.btn-green:hover { background: #66bb6a; }
-.btn-sm { padding: 8px 16px; font-size: 13px; }
-.grid-wrap { overflow-x: auto; margin: 16px 0; }
-table.grid { border-collapse: collapse; margin: 0 auto; }
-table.grid td { width: 42px; height: 42px; text-align: center; vertical-align: middle; border: 1px solid #c9a84c33; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: default; transition: 0.15s; }
-table.grid td.found { background: #4caf5066; color: #fff; border-color: #4caf50; }
-table.grid td.secret { background: #c9a84c44; color: #c9a84c; }
-table.grid td.absent-highlight { background: #c94c4c44; }
-.words-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-.word-tag { padding: 6px 14px; border-radius: 20px; font-size: 14px; border: 1px solid #c9a84c66; background: #1a1a2e; }
-.word-tag.found { background: #4caf5033; border-color: #4caf50; color: #4caf50; }
-.word-tag.absent { background: #c94c4c33; border-color: #c94c4c; color: #ff8a80; text-decoration: line-through; }
-.answer-box { background: #1a1a2e; border: 1px solid #c9a84c; border-radius: 8px; padding: 16px; margin-top: 12px; }
-.answer-box p { margin: 4px 0; font-size: 15px; }
-.answer-box span { color: #c9a84c; font-weight: bold; }
-.status { padding: 12px 16px; border-radius: 8px; margin: 12px 0; font-size: 14px; }
-.status.ok { background: #4caf5022; border: 1px solid #4caf50; color: #4caf50; }
-.status.err { background: #c94c4c22; border: 1px solid #c94c4c; color: #ff8a80; }
-.cases-list { display: flex; flex-direction: column; gap: 8px; }
-.case-item { background: #1a1a2e; border: 1px solid #c9a84c33; border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
-.case-item .case-info { font-size: 14px; }
-.case-item .case-title { font-weight: bold; color: #c9a84c; }
-.case-item .case-meta { color: #888; font-size: 12px; margin-top: 2px; }
-.case-actions { display: flex; gap: 8px; }
-.tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-.tab { padding: 10px 20px; border-radius: 8px; cursor: pointer; border: 1px solid #c9a84c44; background: transparent; color: #c9a84c; font-family: inherit; font-size: 14px; transition: 0.2s; }
+.tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+.tab { padding: 10px 22px; border-radius: 8px; cursor: pointer; border: 1px solid #c9a84c44; background: transparent; color: #c9a84c; font-family: inherit; font-size: 14px; transition: 0.2s; }
 .tab.active { background: #c9a84c; color: #1a1a2e; font-weight: bold; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
-.progress-bar { background: #1a1a2e; border-radius: 4px; height: 6px; margin-top: 8px; }
-.progress-fill { background: #c9a84c; height: 100%; border-radius: 4px; transition: width 0.3s; }
-#genLog { background: #1a1a2e; border: 1px solid #c9a84c33; border-radius: 8px; padding: 12px; font-size: 13px; color: #888; min-height: 60px; font-family: monospace; white-space: pre-wrap; }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-box { background: #1a1a2e; border: 1px solid #c9a84c44; border-radius: 10px; padding: 18px; text-align: center; }
+.stat-num { font-size: 32px; font-weight: bold; color: #c9a84c; }
+.stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+
+/* Funnel */
+.funnel { display: flex; flex-direction: column; gap: 8px; }
+.funnel-row { display: flex; align-items: center; gap: 12px; }
+.funnel-label { width: 160px; font-size: 13px; color: #888; text-align: right; flex-shrink: 0; }
+.funnel-bar-wrap { flex: 1; background: #1a1a2e; border-radius: 4px; height: 28px; overflow: hidden; }
+.funnel-bar { height: 100%; background: linear-gradient(90deg, #c9a84c, #e8c76a); border-radius: 4px; display: flex; align-items: center; padding-left: 10px; font-size: 13px; font-weight: bold; color: #1a1a2e; min-width: 40px; transition: width 0.5s; }
+
+/* Table */
+table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.data th { color: #c9a84c; border-bottom: 1px solid #c9a84c44; padding: 8px 12px; text-align: left; }
+table.data td { padding: 8px 12px; border-bottom: 1px solid #ffffff0a; }
+table.data tr:hover td { background: #ffffff08; }
+
+/* Cases */
+.cases-list { display: flex; flex-direction: column; gap: 8px; }
+.case-item { background: #1a1a2e; border: 1px solid #c9a84c33; border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
+.case-title { font-weight: bold; color: #c9a84c; font-size: 15px; }
+.case-meta { color: #888; font-size: 12px; margin-top: 3px; }
+.btn { background: #c9a84c; color: #1a1a2e; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.2s; }
+.btn:hover { background: #e8c76a; }
+.btn-sm { padding: 7px 14px; font-size: 13px; }
+.btn-outline { background: transparent; border: 1px solid #c9a84c; color: #c9a84c; }
+.btn-outline:hover { background: #c9a84c22; }
+
+/* Grid */
+.grid-wrap { overflow-x: auto; margin: 16px 0; }
+table.grid { border-collapse: collapse; margin: 0 auto; }
+table.grid td { width: 40px; height: 40px; text-align: center; vertical-align: middle; border: 1px solid #c9a84c22; font-size: 15px; font-weight: bold; border-radius: 3px; }
+table.grid td.found { background: #4caf5055; color: #fff; border-color: #4caf5088; }
+table.grid td.secret { background: #c9a84c44; color: #c9a84c; border-color: #c9a84c88; }
+.words-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.word-tag { padding: 6px 14px; border-radius: 20px; font-size: 14px; border: 1px solid #c9a84c55; background: #1a1a2e; }
+.word-tag.in-grid { background: #4caf5022; border-color: #4caf50; color: #4caf50; }
+.word-tag.absent { background: #c94c4c22; border-color: #c94c4c; color: #ff8a80; text-decoration: line-through; }
+.answer-box { background: #1a1a2e; border: 1px solid #c9a84c55; border-radius: 8px; padding: 16px; margin-top: 12px; display: flex; gap: 24px; flex-wrap: wrap; }
+.answer-box .answer-item { font-size: 15px; }
+.answer-box .answer-item span { color: #c9a84c; font-weight: bold; display: block; font-size: 12px; margin-bottom: 2px; }
+.legend { display: flex; gap: 16px; font-size: 12px; color: #888; margin-bottom: 8px; flex-wrap: wrap; }
+.legend-dot { width: 14px; height: 14px; border-radius: 3px; display: inline-block; margin-right: 4px; vertical-align: middle; }
+.row { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; flex-wrap: wrap; }
+label { display: block; color: #c9a84c; font-size: 12px; margin-bottom: 5px; }
+input, select { background: #1a1a2e; border: 1px solid #c9a84c55; color: #e8e0d0; border-radius: 8px; padding: 9px 13px; font-size: 14px; font-family: inherit; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+.badge-free { background: #4caf5022; color: #4caf50; border: 1px solid #4caf5055; }
+.badge-paid { background: #c94c4c22; color: #ff8a80; border: 1px solid #c94c4c55; }
+.empty { color: #888; text-align: center; padding: 24px; }
 </style>
 </head>
 <body>
@@ -60,381 +76,185 @@ table.grid td.absent-highlight { background: #c94c4c44; }
   <h1>🔍 БУКВЕННОЕ ДЕЛО — АДМИНКА</h1>
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('generate')">⚡ Генерация дел</button>
-    <button class="tab" onclick="showTab('cases')">📋 Все дела</button>
-    <button class="tab" onclick="showTab('preview')">👁 Предпросмотр</button>
+    <button class="tab active" onclick="showTab('stats', this)">📊 Статистика</button>
+    <button class="tab" onclick="showTab('cases', this)">📋 Дела</button>
+    <button class="tab" onclick="showTab('preview', this)">👁 Решение дела</button>
   </div>
 
-  <!-- TAB: GENERATE -->
-  <div id="tab-generate" class="tab-content active">
-    <div class="card">
-      <h2>⚡ Генератор дел</h2>
-      <div class="row">
-        <div>
-          <label>Название дела</label>
-          <input type="text" id="genTitle" placeholder="Убийство в библиотеке" style="width:280px">
-        </div>
-        <div>
-          <label>Номер дела</label>
-          <input type="number" id="genNumber" placeholder="4" style="width:100px">
-        </div>
-        <div>
-          <label>Сложность</label>
-          <select id="genDiff" style="width:130px">
-            <option value="easy">Лёгкое</option>
-            <option value="medium" selected>Среднее</option>
-            <option value="hard">Сложное</option>
-          </select>
-        </div>
-        <div>
-          <label>Платное?</label>
-          <select id="genFree" style="width:120px">
-            <option value="false">Платное</option>
-            <option value="true">Бесплатное</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row">
-        <div style="flex:1">
-          <label>Слова в сетке (через запятую, мин. 9)</label>
-          <textarea id="genWords" placeholder="МАКСИМ, ГАРАЖ, ПИСТОЛЕТ, ПЕРЧАТКИ, ТЕТРАДЬ, МАШИНА, КЛЮЧИ, ДВЕРЬ, ОКНО, СВИДЕТЕЛЬ, ПОБЕГ"></textarea>
-        </div>
-      </div>
-
-      <div class="row">
-        <div style="flex:1">
-          <label>Слово-убийца (отсутствует в сетке)</label>
-          <input type="text" id="genKiller" placeholder="СЕРГЕЙ" style="width:200px">
-        </div>
-        <div style="flex:1">
-          <label>Слово-метод (отсутствует в сетке)</label>
-          <input type="text" id="genMethod" placeholder="НОЖ" style="width:200px">
-        </div>
-        <div style="flex:1">
-          <label>Место преступления (ответ)</label>
-          <input type="text" id="genLocation" placeholder="ЧЕРДАК" style="width:200px">
-        </div>
-      </div>
-
-      <div id="genLog">Заполни поля выше и нажми "Сгенерировать"...</div>
-      <div class="progress-bar" style="margin:8px 0 16px"><div class="progress-fill" id="genProgress" style="width:0%"></div></div>
-
-      <div class="row">
-        <button class="btn" onclick="generateCase()">⚡ Сгенерировать</button>
-        <button class="btn btn-green" id="btnSave" onclick="saveCase()" style="display:none">💾 Сохранить в БД</button>
-        <button class="btn" onclick="fillExample()" style="background:#555;color:#fff">📝 Пример</button>
-      </div>
-    </div>
-
-    <!-- Preview generated -->
-    <div class="card" id="generatedPreview" style="display:none">
-      <h2>👁 Предпросмотр сгенерированного дела</h2>
-      <div id="previewGrid" class="grid-wrap"></div>
-      <div id="previewWords" class="words-list"></div>
-      <div id="previewAnswer" class="answer-box"></div>
-    </div>
+  <!-- СТАТИСТИКА -->
+  <div id="tab-stats" class="tab-content active">
+    <div id="statsContent"><p class="empty">Загружаю...</p></div>
   </div>
 
-  <!-- TAB: CASES -->
+  <!-- ДЕЛА -->
   <div id="tab-cases" class="tab-content">
     <div class="card">
-      <h2>📋 Все дела в базе</h2>
-      <div class="row">
-        <button class="btn btn-sm" onclick="loadCases()">🔄 Обновить</button>
-      </div>
-      <div id="casesList" class="cases-list" style="margin-top:12px">
-        <p style="color:#888">Нажми "Обновить" чтобы загрузить...</p>
-      </div>
+      <h2>📋 Все дела</h2>
+      <button class="btn btn-sm" onclick="loadCases()" style="margin-bottom:16px">🔄 Обновить</button>
+      <div id="casesList"><p class="empty">Нажми "Обновить"</p></div>
     </div>
   </div>
 
-  <!-- TAB: PREVIEW -->
+  <!-- РЕШЕНИЕ ДЕЛА -->
   <div id="tab-preview" class="tab-content">
     <div class="card">
-      <h2>👁 Проверить дело</h2>
+      <h2>👁 Просмотр решения</h2>
       <div class="row">
         <div>
           <label>Номер дела</label>
-          <input type="number" id="previewNum" placeholder="1" style="width:100px">
+          <input type="number" id="previewNum" placeholder="1" style="width:100px" onkeydown="if(event.key==='Enter')loadPreview()">
         </div>
-        <button class="btn btn-sm" onclick="loadPreview()" style="align-self:flex-end">Загрузить</button>
+        <button class="btn btn-sm" onclick="loadPreview()">Загрузить</button>
       </div>
-      <div id="previewContainer"></div>
+      <div id="previewContainer"><p class="empty">Введи номер дела и нажми "Загрузить"</p></div>
     </div>
   </div>
-
 </div>
 
 <script>
 const API = 'https://inspiring-friendship-production-bf42.up.railway.app';
 const ADMIN_KEY = 'bukvendelo_admin_2024';
 
-let generatedCase = null;
-
-function showTab(name) {
+function showTab(name, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
+  el.classList.add('active');
+  if (name === 'stats') loadStats();
+  if (name === 'cases') loadCases();
 }
 
-function log(msg) {
-  document.getElementById('genLog').textContent += msg + '\n';
-}
-
-function setProgress(p) {
-  document.getElementById('genProgress').style.width = p + '%';
-}
-
-function fillExample() {
-  document.getElementById('genTitle').value = 'Смерть в музее';
-  document.getElementById('genNumber').value = '4';
-  document.getElementById('genWords').value = 'МАКСИМ, КАРТИНА, ВИТРИНА, ОХРАННИК, ЛЕСТНИЦА, ФОНАРЬ, ЗАМОК, ЗАПИСКА, ПЕРЧАТКИ, ЗЕРКАЛО, ПОРТФЕЛЬ';
-  document.getElementById('genKiller').value = 'СЕРГЕЙ';
-  document.getElementById('genMethod').value = 'ЯД';
-  document.getElementById('genLocation').value = 'ХРАНИЛИЩЕ';
-}
-
-// ===== GENERATOR =====
-function generateCase() {
-  const title = document.getElementById('genTitle').value.trim();
-  const number = parseInt(document.getElementById('genNumber').value);
-  const difficulty = document.getElementById('genDiff').value;
-  const isFree = document.getElementById('genFree').value === 'true';
-  const wordsRaw = document.getElementById('genWords').value.trim();
-  const killer = document.getElementById('genKiller').value.trim().toUpperCase();
-  const method = document.getElementById('genMethod').value.trim().toUpperCase();
-  const location = document.getElementById('genLocation').value.trim().toUpperCase();
-
-  if (!title || !number || !wordsRaw || !killer || !method || !location) {
-    document.getElementById('genLog').textContent = '❌ Заполни все поля!';
-    return;
-  }
-
-  const wordsInGrid = wordsRaw.split(',').map(w => w.trim().toUpperCase()).filter(w => w.length >= 3);
-
-  if (wordsInGrid.length < 9) {
-    document.getElementById('genLog').textContent = '❌ Нужно минимум 9 слов для сетки!';
-    return;
-  }
-
-  document.getElementById('genLog').textContent = '';
-  setProgress(10);
-  log('🔄 Генерирую сетку 10×10...');
-
+// ===== СТАТИСТИКА =====
+async function loadStats() {
+  document.getElementById('statsContent').innerHTML = '<p class="empty">Загружаю...</p>';
   try {
-    const result = buildPuzzle(wordsInGrid, killer, method, location);
-    setProgress(80);
-    log('✅ Сетка построена!');
-    log(`📍 Размещено слов: ${result.placements.length} из ${wordsInGrid.length}`);
-    log(`🔤 Секретное место: ${location} (${location.length} букв)`);
+    const res = await fetch(`${API}/api/analytics/dashboard`, { headers: { 'x-admin-key': ADMIN_KEY } });
+    const d = await res.json();
+    const t = d.totals;
+    const f = d.funnel;
+    const maxFunnel = Math.max(f.bot_start, 1);
 
-    generatedCase = { title, case_number: number, difficulty, is_free: isFree, puzzle_data: result };
+    const funnelItems = [
+      { label: '🤖 Запуск бота', val: f.bot_start },
+      { label: '📱 Открыли игру', val: f.app_open },
+      { label: '🎮 Начали дело', val: f.game_start },
+      { label: '✅ Завершили', val: f.game_complete },
+      { label: '💳 Видели paywall', val: f.paywall_shown },
+      { label: '🔓 Подписались', val: f.subscribed },
+    ];
 
-    renderPreview(result);
-    setProgress(100);
-    document.getElementById('generatedPreview').style.display = 'block';
-    document.getElementById('btnSave').style.display = 'inline-block';
-    log('✅ Готово! Проверь предпросмотр и нажми "Сохранить в БД"');
-  } catch(e) {
-    log('❌ Ошибка: ' + e.message);
-    setProgress(0);
-  }
-}
+    document.getElementById('statsContent').innerHTML = `
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-num">${t.total_users}</div><div class="stat-label">Всего пользователей</div></div>
+        <div class="stat-box"><div class="stat-num">${t.new_users_7d}</div><div class="stat-label">Новых за 7 дней</div></div>
+        <div class="stat-box"><div class="stat-num">${t.new_users_30d}</div><div class="stat-label">Новых за 30 дней</div></div>
+        <div class="stat-box"><div class="stat-num">${t.dau}</div><div class="stat-label">DAU (сегодня)</div></div>
+        <div class="stat-box"><div class="stat-num">${t.wau}</div><div class="stat-label">WAU (неделя)</div></div>
+        <div class="stat-box"><div class="stat-num">${t.total_completions}</div><div class="stat-label">Дел завершено</div></div>
+        <div class="stat-box"><div class="stat-num">${t.monthly_subs}</div><div class="stat-label">Подписок (месяц)</div></div>
+        <div class="stat-box"><div class="stat-num">${t.lifetime_subs}</div><div class="stat-label">Подписок (навсегда)</div></div>
+      </div>
 
-function buildPuzzle(wordsInGrid, killer, method, location) {
-  const SIZE = 10;
-  const grid = Array.from({length: SIZE}, () => Array(SIZE).fill(null));
-  const placements = [];
-
-  const directions = [
-    [0,1],[1,0],[0,-1],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]
-  ];
-
-  function tryPlace(word, row, col, dr, dc) {
-    for (let i = 0; i < word.length; i++) {
-      const r = row + i*dr, c = col + i*dc;
-      if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) return false;
-      if (grid[r][c] !== null && grid[r][c] !== word[i]) return false;
-    }
-    return true;
-  }
-
-  function placeWord(word) {
-    const shuffledDirs = [...directions].sort(() => Math.random()-0.5);
-    for (let attempt = 0; attempt < 200; attempt++) {
-      const dr = shuffledDirs[attempt % shuffledDirs.length][0];
-      const dc = shuffledDirs[attempt % shuffledDirs.length][1];
-      const row = Math.floor(Math.random()*SIZE);
-      const col = Math.floor(Math.random()*SIZE);
-      if (tryPlace(word, row, col, dr, dc)) {
-        const cells = [];
-        for (let i = 0; i < word.length; i++) {
-          const r = row+i*dr, c = col+i*dc;
-          grid[r][c] = word[i];
-          cells.push([r, c]);
-        }
-        return cells;
-      }
-    }
-    return null;
-  }
-
-  // Place words sorted by length desc
-  const sorted = [...wordsInGrid].sort((a,b) => b.length - a.length);
-  const placed = [];
-  const notPlaced = [];
-
-  for (const word of sorted) {
-    const cells = placeWord(word);
-    if (cells) {
-      placements.push({word, cells});
-      placed.push(word);
-    } else {
-      notPlaced.push(word);
-      log(`⚠️ Не удалось разместить: ${word}`);
-    }
-  }
-
-  // Fill remaining with random letters + location letters
-  const ru = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
-  const locLetters = [...location];
-  const emptyCells = [];
-  for (let r = 0; r < SIZE; r++)
-    for (let c = 0; c < SIZE; c++)
-      if (grid[r][c] === null) emptyCells.push([r,c]);
-
-  // Place location letters in random empty cells (secret cells)
-  const secretCells = [];
-  const shuffledEmpty = [...emptyCells].sort(() => Math.random()-0.5);
-  for (let i = 0; i < Math.min(locLetters.length, shuffledEmpty.length); i++) {
-    const [r,c] = shuffledEmpty[i];
-    grid[r][c] = locLetters[i];
-    secretCells.push([r,c]);
-  }
-
-  // Fill rest with random
-  for (let r = 0; r < SIZE; r++)
-    for (let c = 0; c < SIZE; c++)
-      if (grid[r][c] === null)
-        grid[r][c] = ru[Math.floor(Math.random()*ru.length)];
-
-  const word_order = [...placed, killer, method].sort(() => Math.random()-0.5);
-
-  return {
-    grid,
-    placements,
-    word_order,
-    absent_words: { killer, method },
-    secret_cells: secretCells,
-    words_in_grid: placed,
-    location_answer: location
-  };
-}
-
-// ===== RENDER =====
-function renderGrid(puzzle, containerId) {
-  const SIZE = 10;
-  const placedCells = new Set();
-  const secretSet = new Set((puzzle.secret_cells||[]).map(([r,c])=>`${r},${c}`));
-
-  for (const p of (puzzle.placements||[])) {
-    for (const [r,c] of p.cells) placedCells.add(`${r},${c}`);
-  }
-
-  let html = '<table class="grid">';
-  for (let r = 0; r < SIZE; r++) {
-    html += '<tr>';
-    for (let c = 0; c < SIZE; c++) {
-      const key = `${r},${c}`;
-      let cls = '';
-      if (placedCells.has(key)) cls = 'found';
-      else if (secretSet.has(key)) cls = 'secret';
-      html += `<td class="${cls}">${puzzle.grid[r][c]}</td>`;
-    }
-    html += '</tr>';
-  }
-  html += '</table>';
-  document.getElementById(containerId).innerHTML = html;
-}
-
-function renderPreview(puzzle) {
-  renderGrid(puzzle, 'previewGrid');
-
-  const wordsHtml = (puzzle.word_order||[]).map(w => {
-    const isAbsent = w === puzzle.absent_words?.killer || w === puzzle.absent_words?.method;
-    return `<span class="word-tag ${isAbsent ? 'absent' : 'found'}">${w}</span>`;
-  }).join('');
-  document.getElementById('previewWords').innerHTML = wordsHtml;
-
-  document.getElementById('previewAnswer').innerHTML = `
-    <p>🔪 <span>Убийца:</span> ${puzzle.absent_words?.killer}</p>
-    <p>⚗️ <span>Метод:</span> ${puzzle.absent_words?.method}</p>
-    <p>📍 <span>Место:</span> ${puzzle.location_answer}</p>
-    <p style="margin-top:8px;color:#888;font-size:12px">🟡 Жёлтые клетки = секретные буквы места преступления | 🟢 Зелёные = слова в сетке | ❌ Зачёркнутые = отсутствуют в сетке</p>
-  `;
-}
-
-// ===== SAVE =====
-async function saveCase() {
-  if (!generatedCase) return;
-  const btn = document.getElementById('btnSave');
-  btn.textContent = '⏳ Сохраняю...';
-  btn.disabled = true;
-
-  try {
-    const res = await fetch(`${API}/api/cases/admin/create`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
-      body: JSON.stringify(generatedCase)
-    });
-    const data = await res.json();
-    if (data.id || data.case_number) {
-      log('✅ Дело сохранено в базе! ID: ' + (data.id || '?'));
-      btn.textContent = '✅ Сохранено!';
-    } else {
-      log('❌ Ошибка: ' + JSON.stringify(data));
-      btn.textContent = '❌ Ошибка';
-      btn.disabled = false;
-    }
-  } catch(e) {
-    log('❌ Ошибка сети: ' + e.message);
-    btn.textContent = '❌ Ошибка';
-    btn.disabled = false;
-  }
-}
-
-// ===== LOAD CASES =====
-async function loadCases() {
-  document.getElementById('casesList').innerHTML = '<p style="color:#888">Загружаю...</p>';
-  try {
-    const res = await fetch(`${API}/api/cases/admin/list`, {
-      headers: { 'x-admin-key': ADMIN_KEY }
-    });
-    const data = await res.json();
-    if (!data.length) {
-      document.getElementById('casesList').innerHTML = '<p style="color:#888">Дел нет</p>';
-      return;
-    }
-    document.getElementById('casesList').innerHTML = data.map(c => `
-      <div class="case-item">
-        <div class="case-info">
-          <div class="case-title">№${c.case_number} — ${c.title}</div>
-          <div class="case-meta">${c.difficulty} | ${c.is_free ? '🆓 Бесплатное' : '🔒 Платное'}</div>
-        </div>
-        <div class="case-actions">
-          <button class="btn btn-sm" onclick="loadPreviewById(${c.case_number})">👁 Просмотр</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteCase(${c.id}, '${c.title}')">🗑</button>
+      <div class="card">
+        <h2>🔽 Воронка</h2>
+        <div class="funnel">
+          ${funnelItems.map(item => `
+            <div class="funnel-row">
+              <div class="funnel-label">${item.label}</div>
+              <div class="funnel-bar-wrap">
+                <div class="funnel-bar" style="width:${Math.max(3, Math.round(item.val/maxFunnel*100))}%">${item.val}</div>
+              </div>
+            </div>
+          `).join('')}
         </div>
       </div>
-    `).join('');
+
+      <div class="card">
+        <h2>🏆 Топ дел</h2>
+        <table class="data">
+          <thead><tr><th>№</th><th>Название</th><th>Начали</th><th>Завершили</th><th>Среднее время</th></tr></thead>
+          <tbody>
+            ${d.topCases.map(c => `
+              <tr>
+                <td>${c.case_number}</td>
+                <td>${c.title}</td>
+                <td>${c.started}</td>
+                <td>${c.completed}</td>
+                <td>${c.avg_minutes ? c.avg_minutes + ' мин' : '—'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>📅 События за 30 дней</h2>
+        <table class="data">
+          <thead><tr><th>Дата</th><th>Событие</th><th>Всего</th><th>Уникальных</th></tr></thead>
+          <tbody>
+            ${d.byDay.slice(0, 50).map(r => `
+              <tr>
+                <td>${r.date}</td>
+                <td>${r.event}</td>
+                <td>${r.count}</td>
+                <td>${r.unique_users}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
   } catch(e) {
-    document.getElementById('casesList').innerHTML = '<p style="color:#ff8a80">Ошибка: ' + e.message + '</p>';
+    document.getElementById('statsContent').innerHTML = `<p class="empty" style="color:#ff8a80">Ошибка: ${e.message}</p>`;
   }
 }
 
-// ===== PREVIEW CASE =====
+// ===== ДЕЛА =====
+async function loadCases() {
+  document.getElementById('casesList').innerHTML = '<p class="empty">Загружаю...</p>';
+  try {
+    const res = await fetch(`${API}/api/analytics/dashboard`, { headers: { 'x-admin-key': ADMIN_KEY } });
+    const d = await res.json();
+    const statsMap = {};
+    for (const c of d.topCases) statsMap[c.case_number] = c;
+
+    const res2 = await fetch(`${API}/api/cases/admin/list`, { headers: { 'x-admin-key': ADMIN_KEY } });
+
+    if (!res2.ok) {
+      document.getElementById('casesList').innerHTML = `
+        <p class="empty" style="color:#ff8a80">
+          Нет доступа к списку дел. Убедись что роут /api/cases/admin/list существует.
+        </p>`;
+      return;
+    }
+
+    const cases = await res2.json();
+    if (!cases.length) { document.getElementById('casesList').innerHTML = '<p class="empty">Дел нет</p>'; return; }
+
+    document.getElementById('casesList').innerHTML = `
+      <div class="cases-list">
+        ${cases.map(c => {
+          const s = statsMap[c.case_number] || {};
+          return `
+          <div class="case-item">
+            <div>
+              <div class="case-title">№${c.case_number} — ${c.title}</div>
+              <div class="case-meta">
+                ${c.difficulty} &nbsp;|&nbsp;
+                <span class="badge ${c.is_free ? 'badge-free' : 'badge-paid'}">${c.is_free ? 'Бесплатное' : 'Платное'}</span>
+                &nbsp;|&nbsp; 👥 ${s.started || 0} начали &nbsp; ✅ ${s.completed || 0} завершили
+              </div>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="loadPreviewById(${c.case_number})">👁 Решение</button>
+          </div>`;
+        }).join('')}
+      </div>`;
+  } catch(e) {
+    document.getElementById('casesList').innerHTML = `<p class="empty" style="color:#ff8a80">Ошибка: ${e.message}</p>`;
+  }
+}
+
+// ===== РЕШЕНИЕ ДЕЛА =====
 async function loadPreview() {
   const num = document.getElementById('previewNum').value;
   if (!num) return;
@@ -442,79 +262,63 @@ async function loadPreview() {
 }
 
 async function loadPreviewById(num) {
-  showTab('preview');
+  showTab('preview', document.querySelectorAll('.tab')[2]);
   document.getElementById('previewNum').value = num;
-  document.getElementById('previewContainer').innerHTML = '<p style="color:#888">Загружаю...</p>';
+  document.getElementById('previewContainer').innerHTML = '<p class="empty">Загружаю...</p>';
+
   try {
-    const res = await fetch(`${API}/api/cases/admin/${num}`, {
-      headers: { 'x-admin-key': ADMIN_KEY }
-    });
-    const data = await res.json();
-    if (!data.puzzle_data) {
-      document.getElementById('previewContainer').innerHTML = '<p style="color:#ff8a80">Дело не найдено</p>';
+    const res = await fetch(`${API}/api/cases/admin/${num}`, { headers: { 'x-admin-key': ADMIN_KEY } });
+    if (!res.ok) {
+      document.getElementById('previewContainer').innerHTML = '<p class="empty" style="color:#ff8a80">Дело не найдено</p>';
       return;
     }
+    const data = await res.json();
     const p = data.puzzle_data;
-    document.getElementById('previewContainer').innerHTML = `
-      <h3 style="color:#c9a84c;margin:16px 0 8px">№${data.case_number} — ${data.title}</h3>
-      <div class="grid-wrap"><div id="previewGridMain"></div></div>
-      <div id="previewWordsMain" class="words-list"></div>
-      <div id="previewAnswerMain" class="answer-box"></div>
-    `;
-    renderGridInto(p, 'previewGridMain');
+
+    const SIZE = 10;
+    const placedSet = new Set();
+    const secretSet = new Set((p.secret_cells||[]).map(([r,c])=>`${r},${c}`));
+    for (const pl of (p.placements||[])) for (const [r,c] of pl.cells) placedSet.add(`${r},${c}`);
+
+    let gridHtml = '<table class="grid">';
+    for (let r = 0; r < SIZE; r++) {
+      gridHtml += '<tr>';
+      for (let c = 0; c < SIZE; c++) {
+        const key = `${r},${c}`;
+        const cls = placedSet.has(key) ? 'found' : secretSet.has(key) ? 'secret' : '';
+        gridHtml += `<td class="${cls}">${p.grid[r][c]}</td>`;
+      }
+      gridHtml += '</tr>';
+    }
+    gridHtml += '</table>';
+
     const wordsHtml = (p.word_order||[]).map(w => {
       const isAbsent = w === p.absent_words?.killer || w === p.absent_words?.method;
-      return `<span class="word-tag ${isAbsent ? 'absent' : 'found'}">${w}</span>`;
+      return `<span class="word-tag ${isAbsent ? 'absent' : 'in-grid'}">${w}</span>`;
     }).join('');
-    document.getElementById('previewWordsMain').innerHTML = wordsHtml;
-    document.getElementById('previewAnswerMain').innerHTML = `
-      <p>🔪 <span>Убийца:</span> ${p.absent_words?.killer}</p>
-      <p>⚗️ <span>Метод:</span> ${p.absent_words?.method}</p>
-      <p>📍 <span>Место:</span> ${p.location_answer}</p>
+
+    document.getElementById('previewContainer').innerHTML = `
+      <h3 style="color:#c9a84c;margin-bottom:16px">№${data.case_number} — ${data.title}</h3>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:#4caf5055;border:1px solid #4caf50"></span>Слова в сетке</span>
+        <span><span class="legend-dot" style="background:#c9a84c44;border:1px solid #c9a84c"></span>Секретные буквы места</span>
+        <span><span class="legend-dot" style="background:#1a1a2e;border:1px solid #444"></span>Случайные буквы</span>
+      </div>
+      <div class="grid-wrap">${gridHtml}</div>
+      <div class="words-list">${wordsHtml}</div>
+      <div class="answer-box">
+        <div class="answer-item"><span>🔪 Убийца</span>${p.absent_words?.killer}</div>
+        <div class="answer-item"><span>⚗️ Метод</span>${p.absent_words?.method}</div>
+        <div class="answer-item"><span>📍 Место преступления</span>${p.location_answer}</div>
+      </div>
     `;
   } catch(e) {
-    document.getElementById('previewContainer').innerHTML = '<p style="color:#ff8a80">Ошибка: ' + e.message + '</p>';
+    document.getElementById('previewContainer').innerHTML = `<p class="empty" style="color:#ff8a80">Ошибка: ${e.message}</p>`;
   }
 }
 
-function renderGridInto(puzzle, divId) {
-  const SIZE = 10;
-  const placedCells = new Set();
-  const secretSet = new Set((puzzle.secret_cells||[]).map(([r,c])=>`${r},${c}`));
-  for (const p of (puzzle.placements||[])) {
-    for (const [r,c] of p.cells) placedCells.add(`${r},${c}`);
-  }
-  let html = '<table class="grid">';
-  for (let r = 0; r < SIZE; r++) {
-    html += '<tr>';
-    for (let c = 0; c < SIZE; c++) {
-      const key = `${r},${c}`;
-      let cls = '';
-      if (placedCells.has(key)) cls = 'found';
-      else if (secretSet.has(key)) cls = 'secret';
-      html += `<td class="${cls}">${puzzle.grid[r][c]}</td>`;
-    }
-    html += '</tr>';
-  }
-  html += '</table>';
-  document.getElementById(divId).innerHTML = html;
-}
-
-// ===== DELETE =====
-async function deleteCase(id, title) {
-  if (!confirm(`Удалить дело "${title}"?`)) return;
-  try {
-    const res = await fetch(`${API}/api/cases/admin/${id}`, {
-      method: 'DELETE',
-      headers: { 'x-admin-key': ADMIN_KEY }
-    });
-    const data = await res.json();
-    if (data.ok) { alert('Удалено!'); loadCases(); }
-    else alert('Ошибка: ' + JSON.stringify(data));
-  } catch(e) {
-    alert('Ошибка: ' + e.message);
-  }
-}
+// Загружаем статистику сразу
+loadStats();
 </script>
 </body>
 </html>
