@@ -84,7 +84,9 @@ async function initDB() {
 }
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, async () => {
+const HOST = '0.0.0.0';
+
+app.listen(PORT, HOST, async () => {
   await initDB();
-  console.log(`🚀 Сервер запущен на порту ${PORT}`);
+  console.log(`🚀 Сервер запущен на ${HOST}:${PORT}`);
 });
