@@ -151,7 +151,25 @@ function isAdjacent(a, b) {
 }
 
 function isOrthogonal(a, b) {
-  return Math.abs(a.r - b.r) <= 1 && Math.abs(a.c - b.c) <= 1 && !(a.r === b.r && a.c === b.c);
+  return (a.r === b.r && Math.abs(a.c - b.c) === 1) || (a.c === b.c && Math.abs(a.r - b.r) === 1);
+}
+
+function isPathStraight(path) {
+  if (path.length < 2) return true;
+  const dr = path[1].r - path[0].r;
+  const dc = path[1].c - path[0].c;
+  for (let i = 2; i < path.length; i++) {
+    if (path[i].r - path[i-1].r !== dr || path[i].c - path[i-1].c !== dc) return false;
+  }
+  return true;
+}
+
+function canAddToPath(path, pos) {
+  if (path.length === 0) return true;
+  const last = path[path.length - 1];
+  if (!isAdjacent(last, pos)) return false;
+  if (isPathStraight(path)) return true;
+  return isOrthogonal(last, pos);
 }
 
 function clearSel() {
