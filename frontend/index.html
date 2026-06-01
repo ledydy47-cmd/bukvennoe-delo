@@ -22,6 +22,40 @@ body {
 .subtitle { font-size: 12px; letter-spacing: 2px; color: #6b4c2a; text-transform: uppercase; }
 hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
 
+.unlock-banner {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.unlock-title {
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #2c1a0e;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.unlock-sub {
+  font-size: 13px;
+  color: #6b4c2a;
+  line-height: 1.5;
+}
+.unlock-btn {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 12px 28px;
+  background: #2c1a0e;
+  color: #f5f0e8;
+  border: none;
+  border-radius: 30px;
+  font-family: 'Georgia', serif;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.unlock-btn:hover { background: #4a2c14; }
+
 .cases-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
 
 .case-card {
@@ -44,41 +78,8 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
   font-size: 11px; font-weight: bold; padding: 3px 8px;
   border-radius: 20px; flex-shrink: 0; white-space: nowrap;
 }
-.badge.free     { background: #c8e6c9; color: #1b5e20; }
-.badge.locked   { background: #ffcdd2; color: #b71c1c; }
 .badge.done     { background: #c8e6c9; color: #1b5e20; }
 .badge.progress { background: #fff9c4; color: #f57f17; }
-
-.paywall {
-  background: #fdf6ec; border: 2px solid #2c1a0e;
-  border-radius: 10px; padding: 20px 16px; text-align: center;
-  margin-bottom: 20px;
-}
-.paywall-icon { font-size: 36px; margin-bottom: 10px; }
-.paywall h3 { font-size: 18px; color: #2c1a0e; margin-bottom: 8px; font-weight: bold; }
-.paywall p  { font-size: 13px; color: #6b4c2a; margin-bottom: 16px; line-height: 1.6; }
-
-.plans-preview { display: flex; gap: 10px; margin-bottom: 16px; }
-.plan-preview {
-  flex: 1; background: #f5f0e8; border: 1.5px solid #c8a880;
-  border-radius: 8px; padding: 12px 8px; text-align: center;
-}
-.plan-preview.highlight { border-color: #2c1a0e; background: #fff9f0; }
-.plan-price { font-size: 20px; font-weight: bold; color: #2c1a0e; }
-.plan-name  { font-size: 12px; color: #6b4c2a; margin-top: 2px; }
-.plan-desc  { font-size: 11px; color: #888; margin-top: 4px; }
-
-.btn {
-  width: 100%; padding: 14px; background: #2c1a0e; color: #f5f0e8;
-  border: none; border-radius: 30px; font-family: 'Georgia',serif;
-  font-size: 15px; font-weight: bold; letter-spacing: 1px;
-  cursor: pointer; margin-bottom: 8px; transition: background .2s;
-}
-.btn:hover { background: #4a2c14; }
-.btn.secondary {
-  background: transparent; color: #2c1a0e;
-  border: 2px solid #2c1a0e; padding: 12px;
-}
 
 .sub-active {
   background: #c8e6c9; border: 2px solid #27ae60;
@@ -102,6 +103,16 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
 <hr>
 
 <div id="subStatus"></div>
+
+<div id="unlockBanner" style="display:none;">
+  <div class="unlock-banner">
+    <div class="unlock-title">ОТКРОЙ ВСЕ ДЕЛА</div>
+    <div class="unlock-sub">50+ дел сейчас + 30 новых дел каждую неделю</div>
+    <button class="unlock-btn" onclick="goSubscribe()">🔓 Открыть доступ</button>
+  </div>
+  <hr>
+</div>
+
 <div id="app"><div class="loading">🔍 Загружаем дела...</div></div>
 
 <div class="footer-links">
@@ -157,11 +168,9 @@ function getIcon(progress, access) {
   return '📋';
 }
 
-function getBadge(progress, access, isFree) {
-  if (access === 'locked') return '<span class="badge locked">🔒 Подписка</span>';
+function getBadge(progress) {
   if (progress === 'completed') return '<span class="badge done">✅ Раскрыто</span>';
   if (progress === 'in_progress') return '<span class="badge progress">🔍 В процессе</span>';
-  if (isFree) return '<span class="badge free">🆓 Бесплатно</span>';
   return '';
 }
 
@@ -173,6 +182,9 @@ function renderCases(cases) {
   }
 
   const hasLocked = cases.some(c => c.access === 'locked');
+  if (hasLocked) {
+    document.getElementById('unlockBanner').style.display = 'block';
+  }
 
   const list = cases.map(c => `
     <div class="case-card ${c.access === 'locked' ? 'locked' : ''} ${c.progress === 'completed' ? 'completed' : ''}"
@@ -186,32 +198,11 @@ function renderCases(cases) {
           ${c.progress === 'completed' ? 'Дело раскрыто' : ''}
         </div>
       </div>
-      ${getBadge(c.progress, c.access, c.is_free)}
+      ${getBadge(c.progress)}
     </div>
   `).join('');
 
-  const paywall = hasLocked ? `
-    <div class="paywall">
-      <div class="paywall-icon">🔍</div>
-      <h3>Открой все дела</h3>
-      <p>Раскрывай новые преступления каждую неделю. Выбери подходящий тариф:</p>
-      <div class="plans-preview">
-        <div class="plan-preview">
-          <div class="plan-price">199 ₽</div>
-          <div class="plan-name">На месяц</div>
-          <div class="plan-desc">Все дела на 30 дней</div>
-        </div>
-        <div class="plan-preview highlight">
-          <div class="plan-price">990 ₽</div>
-          <div class="plan-name">Навсегда ⭐</div>
-          <div class="plan-desc">Все дела навсегда</div>
-        </div>
-      </div>
-      <button class="btn" onclick="goSubscribe()">🔓 Открыть все дела</button>
-    </div>
-  ` : '';
-
-  app.innerHTML = `<div class="cases-list">${list}</div>${paywall}`;
+  app.innerHTML = `<div class="cases-list">${list}</div>`;
 }
 
 window.openCase = function(id, access) {
