@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Оплата прошла — Буквенное дело</title>
+<title>Оплата — Буквенное дело</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,35 +27,101 @@ body {
   width: 100%; padding: 16px; background: #2c1a0e; color: #f5f0e8;
   border: none; border-radius: 30px; font-family: 'Georgia', serif;
   font-size: 15px; font-weight: bold; letter-spacing: 1px;
-  cursor: pointer; transition: background .2s;
+  cursor: pointer; transition: background .2s; margin-bottom: 12px;
 }
 .btn:hover { background: #4a2c14; }
+.btn.secondary {
+  background: transparent; color: #2c1a0e;
+  border: 2px solid #2c1a0e; padding: 12px;
+}
+.loading { color: #6b4c2a; font-size: 14px; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="brand">БУКВЕННОЕ ДЕЛО</div>
-  <div class="icon">🎉</div>
-  <div class="title">Оплата прошла!</div>
-  <div class="sub" id="subText">Все дела теперь открыты. Приятной игры!</div>
-  <button class="btn" onclick="goPlay()">🔍 Играть</button>
+  <div id="content">
+    <div class="icon">⏳</div>
+    <div class="title">Проверяем оплату...</div>
+    <div class="sub">Подождите несколько секунд</div>
+  </div>
 </div>
+
 <script>
+const BASE_URL = 'https://inspiring-friendship-production-bf42.up.railway.app';
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
+const headers = () => ({
+  'Content-Type': 'application/json',
+  'X-Init-Data': tg?.initData ?? '',
+});
+
 const params = new URLSearchParams(window.location.search);
 const plan = params.get('plan');
+const paymentId = params.get('payment_id');
 
-if (plan === 'lifetime') {
-  document.getElementById('subText').textContent = '♾️ Вечный доступ активирован! Все 50+ дел открыты навсегда.';
-} else if (plan === 'monthly') {
-  document.getElementById('subText').textContent = '✅ Подписка на месяц активирована! Все дела открыты.';
+async function checkPayment(attempts = 0) {
+  try {
+    const res = await fetch(`${BASE_URL}/api/payment/status`, { headers: headers() });
+    const data = await res.json();
+
+    const isPaid = data.subscription_type === 'lifetime' ||
+      (data.subscription_type === 'monthly' && data.subscription_expires_at &&
+       new Date(data.subscription_expires_at) > new Date());
+
+    if (isPaid) {
+      showSuccess(data.subscription_type);
+    } else if (attempts < 5) {
+      // Ждём и проверяем снова — вебхук мог ещё не прийти
+      setTimeout(() => checkPayment(attempts + 1), 2000);
+    } else {
+      showPending();
+    }
+  } catch (e) {
+    if (attempts < 3) {
+      setTimeout(() => checkPayment(attempts + 1), 2000);
+    } else {
+      showPending();
+    }
+  }
 }
 
-function goPlay() {
-  window.location.href = 'index.html';
+function showSuccess(type) {
+  const text = type === 'lifetime'
+    ? '♾️ Вечный доступ активирован! Все 50+ дел открыты навсегда.'
+    : '✅ Подписка на месяц активирована! Все дела открыты.';
+
+  document.getElementById('content').innerHTML = `
+    <div class="icon">🎉</div>
+    <div class="title">Оплата прошла!</div>
+    <div class="sub">${text}</div>
+    <button class="btn" onclick="window.location.href='index.html'">🔍 Играть</button>
+  `;
 }
+
+function showPending() {
+  document.getElementById('content').innerHTML = `
+    <div class="icon">⏳</div>
+    <div class="title">Оплата обрабатывается</div>
+    <div class="sub">Платёж на проверке. Обычно это занимает до 5 минут.<br>Если деньги списались — доступ откроется автоматически.</div>
+    <button class="btn" onclick="checkPayment(0)">🔄 Проверить снова</button>
+    <button class="btn secondary" onclick="window.location.href='index.html'">← На главную</button>
+  `;
+}
+
+function showFailed() {
+  document.getElementById('content').innerHTML = `
+    <div class="icon">❌</div>
+    <div class="title">Оплата не прошла</div>
+    <div class="sub">Что-то пошло не так. Попробуй ещё раз.</div>
+    <button class="btn" onclick="window.location.href='subscribe.html'">↩️ Попробовать снова</button>
+    <button class="btn secondary" onclick="window.location.href='index.html'">← На главную</button>
+  `;
+}
+
+// Запускаем проверку
+checkPayment();
 </script>
 </body>
 </html>
