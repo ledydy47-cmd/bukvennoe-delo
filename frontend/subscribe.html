@@ -204,9 +204,14 @@ function selectPlan(plan) {
 }
 
 async function startPayment() {
+  // Проверяем что открыто через Telegram
+  if (!tg?.initData) {
+    alert('⚠️ Для оформления подписки нажмите кнопку «Играть» в левом нижнем углу чата с ботом @bukv_delo_bot');
+    return;
+  }
+
   if (!selectedPlan) {
-    if (tg) tg.showAlert('Выбери тариф');
-    else alert('Выбери тариф');
+    tg.showAlert('Выбери тариф');
     return;
   }
 
