@@ -434,7 +434,8 @@ try {
     document.getElementById('app').innerHTML = `<div class="loading">❌ ${caseRes.error}</div>`;
   } else {
     renderGame(caseRes, saved);
-    trackEvent('game_start');
+    trackEvent('app_open');
+  trackEvent('game_start');
   }
 } catch (e) {
   document.getElementById('app').innerHTML = '<div class="loading">❌ Ошибка загрузки</div>';
