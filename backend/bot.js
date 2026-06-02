@@ -53,7 +53,6 @@ export async function handleBotUpdate(update) {
       reply_markup: {
         inline_keyboard: [
           [{ text: '🔤 Открыть игру', web_app: { url: process.env.WEBAPP_URL } }],
-          [{ text: '🔓 Подписка — все дела', url: `${process.env.WEBAPP_URL}/subscribe.html` }],
           [{ text: '❓ Как играть', url: `${process.env.WEBAPP_URL}/help.html` }],
           [{ text: '📩 Поддержка', url: 'https://t.me/bukvennoe_delo_support' }]
         ]
