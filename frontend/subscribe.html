@@ -194,18 +194,39 @@ function selectPlan(plan) {
   btn.textContent = `💳 Оформить за ${prices[plan]}`;
 }
 
-function startPayment() {
+async function startPayment() {
   if (!selectedPlan) {
     if (tg) tg.showAlert('Выбери тариф');
     else alert('Выбери тариф');
     return;
   }
 
-  // Оплата появится после подключения ЮКассы
-  if (tg) {
-    tg.showAlert('⏳ Оплата появится совсем скоро! Следи за обновлениями.');
-  } else {
-    alert('⏳ Оплата появится совсем скоро!');
+  const btn = document.getElementById('buyBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Создаём платёж...';
+
+  try {
+    const res = await fetch('https://inspiring-friendship-production-bf42.up.railway.app/api/payment/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Init-Data': tg?.initData ?? '',
+      },
+      body: JSON.stringify({ plan: selectedPlan }),
+    });
+
+    const data = await res.json();
+
+    if (data.confirmation_url) {
+      window.location.href = data.confirmation_url;
+    } else {
+      throw new Error(data.error || 'Ошибка создания платежа');
+    }
+  } catch (e) {
+    if (tg) tg.showAlert('Ошибка: ' + e.message);
+    else alert('Ошибка: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = selectedPlan ? `💳 Оформить за ${selectedPlan === 'monthly' ? '199' : '990'} ₽` : '💳 Выбери тариф';
   }
 }
 
