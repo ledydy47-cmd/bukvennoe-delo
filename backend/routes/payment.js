@@ -45,6 +45,11 @@ router.get('/status', authMiddleware, async (req, res) => {
 // ===== СОЗДАТЬ ПЛАТЁЖ =====
 router.post('/create', authMiddleware, async (req, res) => {
   try {
+    // Блокируем гостей — только реальные пользователи Telegram
+    if (!req.user || req.user.id === 0) {
+      return res.status(401).json({ error: 'Откройте приложение через Telegram' });
+    }
+
     const { plan } = req.body;
     if (!PLANS[plan]) return res.status(400).json({ error: 'Неверный план' });
 
