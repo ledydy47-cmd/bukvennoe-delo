@@ -10,8 +10,8 @@ const YUKASSA_SECRET_KEY = process.env.YUKASSA_SECRET_KEY;
 const WEBAPP_URL = process.env.WEBAPP_URL;
 
 const PLANS = {
-  monthly:  { amount: '199.00', description: 'Буквенное дело — подписка на месяц',   save_payment: true  },
-  lifetime: { amount: '990.00', description: 'Буквенное дело — вечный доступ',        save_payment: false },
+  monthly:  { amount: '99.00', description: 'Буквенное дело — подписка на месяц',   save_payment: true  },
+  lifetime: { amount: '449.00', description: 'Буквенное дело — вечный доступ',        save_payment: false },
 };
 
 function yukassaAuth() {

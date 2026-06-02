@@ -129,7 +129,11 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
       <div class="plan-top">
         <div class="plan-name">📅 На месяц</div>
         <div class="plan-price">
-          <div class="plan-amount">199 ₽</div>
+          <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+            <span style="background:#e74c3c;color:white;font-size:11px;font-weight:bold;padding:2px 7px;border-radius:20px">-50%</span>
+            <span style="text-decoration:line-through;color:#aaa;font-size:16px">199 ₽</span>
+          </div>
+          <div class="plan-amount" style="color:#e74c3c">99 ₽</div>
           <div class="plan-period">в месяц</div>
         </div>
       </div>
@@ -147,7 +151,11 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
       <div class="plan-top">
         <div class="plan-name">♾️ Навсегда</div>
         <div class="plan-price">
-          <div class="plan-amount">990 ₽</div>
+          <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+            <span style="background:#e74c3c;color:white;font-size:11px;font-weight:bold;padding:2px 7px;border-radius:20px">-50%</span>
+            <span style="text-decoration:line-through;color:#aaa;font-size:16px">990 ₽</span>
+          </div>
+          <div class="plan-amount" style="color:#e74c3c">449 ₽</div>
           <div class="plan-period">единоразово</div>
         </div>
       </div>
@@ -189,7 +197,7 @@ function selectPlan(plan) {
   selectedPlan = plan;
   document.getElementById('plan-monthly').classList.toggle('selected', plan === 'monthly');
   document.getElementById('plan-lifetime').classList.toggle('selected', plan === 'lifetime');
-  const prices = { monthly: '199 ₽', lifetime: '990 ₽' };
+  const prices = { monthly: '99 ₽', lifetime: '449 ₽' };
   const btn = document.getElementById('buyBtn');
   btn.disabled = false;
   btn.textContent = `💳 Оформить за ${prices[plan]}`;
@@ -227,7 +235,7 @@ async function startPayment() {
     if (tg) tg.showAlert('Ошибка: ' + e.message);
     else alert('Ошибка: ' + e.message);
     btn.disabled = false;
-    btn.textContent = selectedPlan ? `💳 Оформить за ${selectedPlan === 'monthly' ? '199' : '990'} ₽` : '💳 Выбери тариф';
+    btn.textContent = selectedPlan ? `💳 Оформить за ${selectedPlan === 'monthly' ? '99' : '449'} ₽` : '💳 Выбери тариф';
   }
 }
 
