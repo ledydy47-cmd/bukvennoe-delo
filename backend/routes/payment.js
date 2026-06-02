@@ -64,7 +64,7 @@ router.post('/create', authMiddleware, async (req, res) => {
         plan:     plan,
         tg_id:    String(req.user.telegram_id),
       },
-      save_payment_method: p.save_payment,
+      // save_payment_method: p.save_payment, // включить после одобрения ЮКассой
     };
 
     const response = await fetch('https://api.yookassa.ru/v3/payments', {
