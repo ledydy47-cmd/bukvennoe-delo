@@ -95,8 +95,8 @@ router.post('/create', authMiddleware, async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('ЮКасса ошибка:', data);
-      return res.status(500).json({ error: data.description || 'Ошибка оплаты' });
+      console.error('ЮКасса ошибка:', JSON.stringify(data));
+      return res.status(500).json({ error: data.description || data.code || JSON.stringify(data) });
     }
 
     // Сохраняем платёж в БД
@@ -112,8 +112,8 @@ router.post('/create', authMiddleware, async (req, res) => {
       confirmation_url: data.confirmation.confirmation_url,
     });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Payment create error:', e.message, e.stack);
+    res.status(500).json({ error: e.message });
   }
 });
 
