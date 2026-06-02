@@ -68,4 +68,44 @@ router.get('/dashboard', async (req, res) => {
   }
 });
 
+// ===== СПИСОК ПОЛЬЗОВАТЕЛЕЙ =====
+router.get('/users', async (req, res) => {
+  if (req.headers['x-admin-key'] !== process.env.ADMIN_KEY) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  try {
+    const filter = req.query.filter || 'all';
+    let where = '';
+    if (filter === 'monthly') where = "WHERE subscription_type = 'monthly'";
+    if (filter === 'lifetime') where = "WHERE subscription_type = 'lifetime'";
+    if (filter === 'free') where = "WHERE subscription_type IS NULL OR subscription_type = 'free'";
+
+    const result = await pool.query(`
+      SELECT
+        u.id,
+        u.telegram_id,
+        u.first_name,
+        u.last_name,
+        u.username,
+        u.subscription_type,
+        u.subscription_expires_at,
+        u.created_at,
+        COUNT(DISTINCT up.id) FILTER (WHERE up.status = 'completed') AS completed_cases,
+        COUNT(DISTINCT up.id) AS total_cases_started,
+        MAX(a.created_at) AS last_active
+      FROM users u
+      LEFT JOIN user_progress up ON up.user_id = u.id
+      LEFT JOIN analytics a ON a.user_id = u.id
+      ${where}
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
+      LIMIT 500
+    `);
+    res.json(result.rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;
