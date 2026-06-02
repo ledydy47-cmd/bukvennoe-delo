@@ -91,9 +91,11 @@ router.get('/users', async (req, res) => {
         u.created_at,
         u.last_seen_at,
         COUNT(DISTINCT up.id) FILTER (WHERE up.status = 'completed') AS completed_cases,
-        COUNT(DISTINCT up.id) AS total_cases_started
+        COUNT(DISTINCT up.id) AS total_cases_started,
+        COUNT(DISTINCT a.id) FILTER (WHERE a.event = 'app_open') AS app_open_count
       FROM users u
       LEFT JOIN user_progress up ON up.user_id = u.id
+      LEFT JOIN analytics a ON a.user_id = u.id
       ${where}
       GROUP BY u.id
       ORDER BY u.created_at DESC

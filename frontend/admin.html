@@ -361,14 +361,23 @@ async function loadUsers(filter = 'all') {
         : u.subscription_type === 'monthly' ? 'badge-monthly'
         : 'badge-free';
       const name = u.first_name
-        ? `${u.first_name}${u.last_name ? ' ' + u.last_name : ''}${u.username ? ' (@' + u.username + ')' : ''}`
+        ? `${u.first_name}${u.username ? ' (@' + u.username + ')' : ''}`
         : `ID: ${u.telegram_id}`;
       const date = new Date(u.created_at).toLocaleDateString('ru-RU');
+      const lastSeen = u.last_seen_at ? new Date(u.last_seen_at).toLocaleDateString('ru-RU') : '—';
+      const appOpened = u.app_open_count > 0 ? `✅ ${u.app_open_count} раз` : '❌ не открывал';
       return `
         <div class="user-item">
-          <div>
+          <div style="flex:1">
             <div class="user-name">${name}</div>
-            <div class="user-meta">Зарегистрирован: ${date} &nbsp;|&nbsp; Дел пройдено: ${u.completed_cases || 0}</div>
+            <div class="user-meta">
+              📅 Регистрация: ${date} &nbsp;|&nbsp; 👁 Последний визит: ${lastSeen}
+            </div>
+            <div class="user-meta" style="margin-top:4px">
+              📱 Открыл приложение: ${appOpened} &nbsp;|&nbsp;
+              🎮 Начато дел: ${u.total_cases_started || 0} &nbsp;|&nbsp;
+              🏆 Завершено: ${u.completed_cases || 0}
+            </div>
           </div>
           <span class="user-badge ${subClass}">${subLabel}</span>
         </div>
