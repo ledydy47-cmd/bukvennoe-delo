@@ -91,23 +91,6 @@ export async function handleBotUpdate(update) {
     return;
   }
 
-  // /manage — управление подпиской
-  if (text === '/manage') {
-    await sendTelegram('sendMessage', {
-      chat_id: chatId,
-      parse_mode: 'Markdown',
-      text: '⚙️ *Управление подпиской*
-
-Нажмите кнопку ниже:',
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: '⚙️ Управление подпиской', web_app: { url: process.env.WEBAPP_URL + '/my-subscription.html' } }]
-        ]
-      }
-    });
-    return;
-  }
-
   // /cancel — отмена подписки
   if (text === '/cancel') {
     await sendTelegram('sendMessage', {
