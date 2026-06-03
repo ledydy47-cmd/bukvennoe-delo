@@ -70,7 +70,7 @@ router.post('/create', authMiddleware, async (req, res) => {
         plan:     plan,
         tg_id:    String(req.user.telegram_id),
       },
-      // save_payment_method: p.save_payment, // включить после одобрения ЮКассой
+      save_payment_method: true,
       receipt: {
         customer: {
           email: 'noreply@bukvennoe-delo.ru',
