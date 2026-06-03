@@ -125,7 +125,16 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
   </div>
 
   <div class="plans" id="plans">
-    <div class="plan-card" id="plan-monthly" onclick="selectPlan('monthly')">
+    
+  <!-- Баннер акции с таймером -->
+  <div style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;border-radius:16px;padding:16px 20px;margin-bottom:20px;text-align:center">
+    <div style="font-size:12px;font-weight:600;letter-spacing:1px;opacity:0.9;margin-bottom:4px">🔥 СПЕЦИАЛЬНОЕ ПРЕДЛОЖЕНИЕ</div>
+    <div style="font-size:18px;font-weight:bold;margin-bottom:6px">Скидка 50% только сейчас!</div>
+    <div style="font-size:12px;opacity:0.85;margin-bottom:10px">До конца акции осталось:</div>
+    <div id="saleTimer" style="font-size:32px;font-weight:bold;letter-spacing:4px;font-family:monospace">24:00:00</div>
+  </div>
+
+<div class="plan-card" id="plan-monthly" onclick="selectPlan('monthly')">
       <div class="plan-top">
         <div class="plan-name">📅 На месяц</div>
         <div class="plan-price">
@@ -275,6 +284,34 @@ document.getElementById('buyBtn').disabled = true;
 document.getElementById('buyBtn').textContent = '💳 Выбери тариф';
 
 checkStatus();
+</script>
+
+<script>
+(function() {
+  const KEY = 'bukv_sale_deadline';
+  let deadline = localStorage.getItem(KEY);
+  if (!deadline) {
+    deadline = Date.now() + 24 * 60 * 60 * 1000;
+    localStorage.setItem(KEY, String(deadline));
+  }
+  deadline = parseInt(deadline);
+
+  function update() {
+    const left = deadline - Date.now();
+    const el = document.getElementById('saleTimer');
+    if (!el) return;
+    if (left <= 0) {
+      el.textContent = '00:00:00';
+      return;
+    }
+    const h = String(Math.floor(left / 3600000)).padStart(2, '0');
+    const m = String(Math.floor((left % 3600000) / 60000)).padStart(2, '0');
+    const s = String(Math.floor((left % 60000) / 1000)).padStart(2, '0');
+    el.textContent = h + ':' + m + ':' + s;
+    setTimeout(update, 1000);
+  }
+  update();
+})();
 </script>
 </body>
 </html>
