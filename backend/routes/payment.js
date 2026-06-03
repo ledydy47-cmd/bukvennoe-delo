@@ -236,3 +236,29 @@ router.post('/auto-renew', async (req, res) => {
 });
 
 export default router;
+
+// Отмена автопродления
+router.post('/cancel', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user || req.user.id === 0) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Убираем payment_method_id чтобы автопродление не сработало
+    await pool.query(
+      `UPDATE users SET payment_method_id = NULL WHERE id = $1`,
+      [req.user.id]
+    );
+
+    // Логируем отмену
+    await pool.query(
+      `INSERT INTO analytics (user_id, event, meta) VALUES ($1, $2, $3)`,
+      [req.user.id, 'subscription_cancelled', '{}']
+    );
+
+    res.json({ ok: true, message: 'Автопродление отменено' });
+  } catch(e) {
+    console.error(e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
