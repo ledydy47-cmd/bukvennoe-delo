@@ -363,8 +363,10 @@ async function loadUsers(filter = 'all') {
       const name = u.first_name
         ? `${u.first_name}${u.username ? ' (@' + u.username + ')' : ''}`
         : `ID: ${u.telegram_id}`;
-      const date = new Date(u.created_at).toLocaleDateString('ru-RU');
-      const lastSeen = u.last_seen_at ? new Date(u.last_seen_at).toLocaleDateString('ru-RU') : '—';
+      const dateObj = new Date(u.created_at);
+      const date = dateObj.toLocaleDateString('ru-RU') + ' ' + dateObj.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+      const lastSeenObj = u.last_seen_at ? new Date(u.last_seen_at) : null;
+      const lastSeen = lastSeenObj ? lastSeenObj.toLocaleDateString('ru-RU') + ' ' + lastSeenObj.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}) : '—';
       const appOpened = u.app_open_count > 0 ? `✅ ${u.app_open_count} раз` : '❌ не открывал';
       return `
         <div class="user-item">
