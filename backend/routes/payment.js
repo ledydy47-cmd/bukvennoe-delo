@@ -64,6 +64,9 @@ router.post('/create', authMiddleware, async (req, res) => {
       },
       capture: true,
       description: p.description,
+      restriction: {
+        payment_method_types: ['bank_card', 'sbp']
+      },
       metadata: {
         user_id:  String(req.user.id),
         plan:     plan,
