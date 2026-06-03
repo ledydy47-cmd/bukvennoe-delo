@@ -88,6 +88,14 @@ async function initDB() {
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
 
+// Напоминания — каждые 24 часа
+import { spawn } from 'child_process';
+setInterval(() => {
+  const proc = spawn('node', ['reminder.mjs'], { cwd: import.meta.dirname });
+  proc.stdout.on('data', d => console.log('[reminder]', d.toString()));
+  proc.stderr.on('data', d => console.error('[reminder]', d.toString()));
+}, 24 * 60 * 60 * 1000);
+
 app.listen(PORT, HOST, async () => {
   await initDB();
   console.log(`🚀 Сервер запущен на ${HOST}:${PORT}`);
