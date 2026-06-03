@@ -54,7 +54,7 @@ export async function handleBotUpdate(update) {
         inline_keyboard: [
           [{ text: '🔤 Открыть игру', web_app: { url: process.env.WEBAPP_URL } }],
           [{ text: '❓ Как играть', url: `${process.env.WEBAPP_URL}/help.html` }],
-          [{ text: '📩 Поддержка', url: 'https://t.me/wbsellan' }]
+          [{ text: '📩 Поддержка', url: 'https://t.me/bukv_support' }]
         ]
       }
     });
@@ -112,7 +112,7 @@ export async function handleBotUpdate(update) {
             `После отмены подписка останется активной до конца оплаченного периода.`,
       reply_markup: {
         inline_keyboard: [
-          [{ text: '📩 Написать в поддержку', url: 'https://t.me/wbsellan' }],
+          [{ text: '📩 Написать в поддержку', url: 'https://t.me/bukv_support' }],
           [{ text: '◀️ Назад к игре', web_app: { url: process.env.WEBAPP_URL } }]
         ]
       }
@@ -128,7 +128,7 @@ export async function handleBotUpdate(update) {
       text: `📩 *Поддержка*\n\nЕсли возникли вопросы или проблемы — напиши нам, поможем!`,
       reply_markup: {
         inline_keyboard: [
-          [{ text: '📩 Написать в поддержку', url: 'https://t.me/wbsellan' }]
+          [{ text: '📩 Написать в поддержку', url: 'https://t.me/bukv_support' }]
         ]
       }
     });
