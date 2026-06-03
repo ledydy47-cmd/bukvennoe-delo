@@ -97,3 +97,26 @@ router.post('/:caseId/hint', authMiddleware, async (req, res) => {
 });
 
 export default router;
+
+// Статистика пользователя для страницы подписки
+router.get('/stats', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE status = 'completed') AS completed,
+        COUNT(*) FILTER (WHERE status = 'in_progress') AS in_progress,
+        COUNT(*) AS started
+      FROM user_progress
+      WHERE user_id = $1
+    `, [req.user.id]);
+
+    res.json({
+      completed: parseInt(result.rows[0].completed) || 0,
+      in_progress: parseInt(result.rows[0].in_progress) || 0,
+      started: parseInt(result.rows[0].started) || 0,
+    });
+  } catch(e) {
+    console.error(e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
