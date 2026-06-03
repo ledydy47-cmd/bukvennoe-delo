@@ -137,7 +137,7 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
     </button>
   </div>
 </div>
-<div id="detectiveCounter" style="display:none;text-align:center;font-size:13px;color:#6b4c2a;background:#f5ead6;padding:8px 16px;border-radius:20px;margin:8px 16px;font-weight:600"></div>
+<div id="detectiveCounter" style="display:block;text-align:center;font-size:13px;color:#6b4c2a;background:#f5ead6;padding:8px 16px;border-radius:20px;margin:8px 16px;font-weight:600">🕵️ Уже 20+ детективов раскрывают дела</div>
 
 <div id="unlockBanner" style="display:none;">
   <div class="unlock-banner">
@@ -224,19 +224,7 @@ function renderCases(cases) {
     document.getElementById('unlockBanner').style.display = 'block';
   }
 
-  // Счётчик детективов
-  try {
-    const statsRes = await fetch(`${BASE_URL}/api/analytics/dashboard`, {
-      headers: { 'x-admin-key': 'bukvendelo_admin_2024' }
-    });
-    const stats = await statsRes.json();
-    const total = stats.totals?.total_users || 0;
-    const counter = document.getElementById('detectiveCounter');
-    if (counter && total > 0) {
-      counter.textContent = `🕵️ ${total.toLocaleString('ru-RU')} детективов уже раскрывают дела`;
-      counter.style.display = 'block';
-    }
-  } catch {}
+
 
   const list = cases.map(c => {
     if (c.access === 'locked') {
@@ -294,8 +282,10 @@ document.getElementById('lockPopup')?.addEventListener('click', function(e) {
 });;
 
 trackEvent('app_open');
-await checkSubStatus();
-const cases = await loadCases();
+const [cases] = await Promise.all([
+  loadCases(),
+  checkSubStatus(),
+]);
 renderCases(cases);
 </script>
 </body>
