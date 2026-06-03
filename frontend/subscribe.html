@@ -116,13 +116,13 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
   <hr>
 
   <div id="statusBox"></div>
-  <a href="my-subscription.html" id="subActiveLink" style="display:none;text-decoration:none;">
-    <div style="background:#e8f5e9;border:2px solid #27ae60;border-radius:12px;padding:16px;text-align:center;margin-bottom:16px">
+  <div id="subActiveLink" style="display:none;">
+    <div onclick="goToManage()" style="background:#e8f5e9;border:2px solid #27ae60;border-radius:12px;padding:16px;text-align:center;margin-bottom:16px;cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.1)">
       <div style="font-size:16px;font-weight:bold;color:#1b5e20">✅ Подписка активна</div>
       <div id="subExpDate" style="font-size:13px;color:#2e7d32;margin-top:4px"></div>
       <div style="font-size:12px;color:#27ae60;margin-top:6px;font-weight:600">⚙️ Управление подпиской →</div>
     </div>
-  </a>
+  </div>
 
   <div class="free-box">
     <h3>🆓 Бесплатно доступно</h3>
@@ -290,6 +290,15 @@ async function checkStatus() {
 // Кнопка неактивна пока не выбран тариф
 document.getElementById('buyBtn').disabled = true;
 document.getElementById('buyBtn').textContent = '💳 Выбери тариф';
+
+function goToManage() {
+  const url = 'https://bukvennoe-delo.vercel.app/my-subscription.html';
+  if (window.Telegram?.WebApp?.openLink) {
+    window.Telegram.WebApp.openLink(url);
+  } else {
+    window.location.href = 'my-subscription.html';
+  }
+}
 
 checkStatus();
 </script>
