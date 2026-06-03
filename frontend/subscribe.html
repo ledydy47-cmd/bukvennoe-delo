@@ -248,7 +248,12 @@ async function startPayment() {
     const data = await res.json();
 
     if (data.confirmation_url) {
-      window.location.href = data.confirmation_url;
+      const tgApp = window.Telegram?.WebApp;
+      if (tgApp?.openLink) {
+        tgApp.openLink(data.confirmation_url);
+      } else {
+        window.location.href = data.confirmation_url;
+      }
     } else {
       throw new Error(data.error || 'Ошибка создания платежа');
     }
