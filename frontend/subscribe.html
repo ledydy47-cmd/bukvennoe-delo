@@ -274,11 +274,11 @@ async function checkStatus() {
       document.getElementById('plans').style.display = 'none';
       btn.style.display = 'none';
       box.innerHTML = `
-        <div class="status-box" style="cursor:pointer;position:relative;z-index:10" onclick="(function(){window.location.href='my-subscription.html'})()">
+        <a href="my-subscription.html" class="status-box" style="display:block;text-decoration:none;cursor:pointer">
           <h3>✅ Подписка активна</h3>
           <p>Действует до ${exp}</p>
           <p style="font-size:12px;color:#2e7d32;margin-top:6px;font-weight:600">⚙️ Управление подпиской →</p>
-        </div>`;
+        </a>`;
     }
   } catch {}
 }
