@@ -274,11 +274,17 @@ async function checkStatus() {
       document.getElementById('plans').style.display = 'none';
       btn.style.display = 'none';
       box.innerHTML = `
-        <a href="my-subscription.html" class="status-box" style="display:block;text-decoration:none;cursor:pointer">
+        <div class="status-box" style="cursor:pointer" id="subActiveBox">
           <h3>✅ Подписка активна</h3>
           <p>Действует до ${exp}</p>
           <p style="font-size:12px;color:#2e7d32;margin-top:6px;font-weight:600">⚙️ Управление подпиской →</p>
-        </a>`;
+        </div>`;
+      setTimeout(function() {
+        var el = document.getElementById('subActiveBox');
+        if (el) el.addEventListener('click', function() {
+          window.location.href = 'my-subscription.html';
+        });
+      }, 100);
     }
   } catch {}
 }
