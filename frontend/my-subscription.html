@@ -137,20 +137,39 @@
       }
     }
 
-    function confirmCancel() {
+    async function confirmCancel() {
+      const doCancel = async () => {
+        try {
+          const res = await fetch(BASE_URL + '/api/payment/cancel', {
+            method: 'POST',
+            headers: headers(),
+          });
+          const data = await res.json();
+          if (data.ok) {
+            const msg = 'Автопродление отменено. Подписка активна до конца периода.';
+            if (tg) tg.showAlert(msg);
+            else alert(msg);
+            document.querySelector('.btn-cancel').textContent = 'Автопродление отменено';
+            document.querySelector('.btn-cancel').disabled = true;
+            document.querySelector('.btn-cancel').style.opacity = '0.5';
+          } else {
+            const err = 'Ошибка: ' + (data.error || 'попробуйте позже');
+            if (tg) tg.showAlert(err);
+            else alert(err);
+          }
+        } catch(e) {
+          if (tg) tg.showAlert('Ошибка соединения');
+          else alert('Ошибка соединения');
+        }
+      };
+
       if (tg) {
         tg.showConfirm(
-          'Вы уверены что хотите отменить автопродление? Подписка останется активной до конца периода.',
-          (confirmed) => {
-            if (confirmed) {
-              window.location.href = 'https://t.me/bukv_support';
-            }
-          }
+          'Отменить автопродление? Подписка останется активной до конца периода.',
+          function(confirmed) { if (confirmed) doCancel(); }
         );
       } else {
-        if (confirm('Отменить автопродление подписки?')) {
-          window.location.href = 'https://t.me/bukv_support';
-        }
+        if (confirm('Отменить автопродление подписки?')) doCancel();
       }
     }
 
