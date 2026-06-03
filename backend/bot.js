@@ -91,6 +91,35 @@ export async function handleBotUpdate(update) {
     return;
   }
 
+  // /cancel — отмена подписки
+  if (text === '/cancel') {
+    await sendTelegram('sendMessage', {
+      chat_id: chatId,
+      parse_mode: 'Markdown',
+      text: `❌ *Отмена автопродления подписки*
+
+` +
+            `Чтобы отменить автоматическое продление подписки:
+
+` +
+            `1️⃣ Напишите нам в поддержку
+` +
+            `2️⃣ Укажите ваш Telegram ID: \`${tgUser.id}\`
+` +
+            `3️⃣ Мы отменим автопродление в течение 24 часов
+
+` +
+            `После отмены подписка останется активной до конца оплаченного периода.`,
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '📩 Написать в поддержку', url: 'https://t.me/bukvennoe_delo_support' }],
+          [{ text: '◀️ Назад к игре', web_app: { url: process.env.WEBAPP_URL } }]
+        ]
+      }
+    });
+    return;
+  }
+
   // /support
   if (text === '/support') {
     await sendTelegram('sendMessage', {

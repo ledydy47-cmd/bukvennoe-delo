@@ -129,9 +129,9 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
   <!-- Баннер акции с таймером -->
   <div style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;border-radius:16px;padding:16px 20px;margin-bottom:20px;text-align:center">
     <div style="font-size:12px;font-weight:600;letter-spacing:1px;opacity:0.9;margin-bottom:4px">🔥 СПЕЦИАЛЬНОЕ ПРЕДЛОЖЕНИЕ</div>
-    <div style="font-size:18px;font-weight:bold;margin-bottom:6px">Скидка 50% только сейчас!</div>
+    <div style="font-size:18px;font-weight:bold;margin-bottom:6px">Скидка 50% на первый месяц!</div>
     <div style="font-size:12px;opacity:0.85;margin-bottom:10px">До конца акции осталось:</div>
-    <div id="saleTimer" style="font-size:32px;font-weight:bold;letter-spacing:4px;font-family:monospace">24:00:00</div>
+    <div id="saleTimer" style="font-size:32px;font-weight:bold;letter-spacing:4px;font-family:monospace">01:00:00</div>
   </div>
 
 <div class="plan-card" id="plan-monthly" onclick="selectPlan('monthly')">
@@ -143,6 +143,7 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
             <span style="text-decoration:line-through;color:#aaa;font-size:16px">199 ₽</span>
           </div>
           <div class="plan-amount" style="color:#e74c3c">99 ₽</div>
+          <div style="font-size:11px;color:#aaa;margin-top:2px">далее 199 ₽/мес</div>
           <div class="plan-period">в месяц</div>
         </div>
       </div>
@@ -270,6 +271,9 @@ async function checkStatus() {
       btn.style.display = 'none';
     } else if (data.subscription_type === 'monthly' && data.subscription_expires_at) {
       const exp = new Date(data.subscription_expires_at).toLocaleDateString('ru-RU');
+      // Показываем кнопку отмены для активных подписчиков
+      const cancelBtn = document.getElementById('cancelBtn');
+      if (cancelBtn) cancelBtn.style.display = 'block';
       box.innerHTML = `
         <div class="status-box">
           <h3>✅ Подписка активна</h3>
@@ -291,7 +295,7 @@ checkStatus();
   const KEY = 'bukv_sale_deadline';
   let deadline = localStorage.getItem(KEY);
   if (!deadline) {
-    deadline = Date.now() + 24 * 60 * 60 * 1000;
+    deadline = Date.now() + 1 * 60 * 60 * 1000;
     localStorage.setItem(KEY, String(deadline));
   }
   deadline = parseInt(deadline);
