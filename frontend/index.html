@@ -107,6 +107,36 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 0 0 20px; }
 <hr>
 
 <div id="subStatus"></div>
+
+<!-- POPUP при клике на закрытое дело -->
+<div id="lockPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#fdf6e3;border-radius:20px;padding:28px 24px;margin:20px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+    <div style="font-size:40px;margin-bottom:12px">🔒</div>
+    <div style="font-size:20px;font-weight:bold;color:#2c1a0e;margin-bottom:8px">Дело засекречено</div>
+    <div style="font-size:14px;color:#6b4c2a;margin-bottom:20px;line-height:1.5">
+      Открой все 50+ дел и раскрывай новые преступления каждую неделю
+    </div>
+    <div style="background:#fff8f0;border-radius:12px;padding:14px;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;color:#6b4c2a">💳 На месяц</span>
+        <span style="font-size:13px"><s style="color:#aaa">199 ₽</s> <b style="color:#e74c3c">99 ₽</b></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:#6b4c2a">♾️ Навсегда</span>
+        <span style="font-size:13px"><s style="color:#aaa">990 ₽</s> <b style="color:#e74c3c">449 ₽</b></span>
+      </div>
+    </div>
+    <div style="background:#e74c3c;color:white;font-size:12px;font-weight:bold;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:16px">
+      🔥 Скидка 50% — только сейчас
+    </div>
+    <button onclick="goSubscribe()" style="width:100%;background:linear-gradient(135deg,#8b4513,#5c2d0a);color:white;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:bold;cursor:pointer;margin-bottom:10px">
+      🔓 Открыть все дела
+    </button>
+    <button onclick="closeLockPopup()" style="width:100%;background:transparent;border:none;color:#aaa;font-size:13px;cursor:pointer;padding:8px">
+      Не сейчас
+    </button>
+  </div>
+</div>
 <div id="unlockBanner" style="display:none;">
   <div class="unlock-banner">
     <div class="unlock-title">ОТКРОЙ ВСЕ ДЕЛА</div>
@@ -223,7 +253,16 @@ window.openCase = function(id, access) {
 
 window.goSubscribe = function() {
   window.location.href = 'subscribe.html';
-};
+}
+
+window.closeLockPopup = function() {
+  document.getElementById('lockPopup').style.display = 'none';
+}
+
+// Закрытие по клику на фон
+document.getElementById('lockPopup')?.addEventListener('click', function(e) {
+  if (e.target === this) closeLockPopup();
+});;
 
 trackEvent('app_open');
 await checkSubStatus();
