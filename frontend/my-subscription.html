@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Моя подписка</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Georgia', serif; background: #fdf6e3; color: #2c1a0e; min-height: 100vh; padding: 20px 16px 40px; }
+    
+    .header { text-align: center; margin-bottom: 24px; }
+    .header h1 { font-size: 22px; color: #2c1a0e; margin-bottom: 4px; }
+    .header p { font-size: 13px; color: #6b4c2a; }
+
+    .status-card { background: linear-gradient(135deg, #27ae60, #1e8449); color: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center; }
+    .status-card .icon { font-size: 40px; margin-bottom: 8px; }
+    .status-card h2 { font-size: 20px; margin-bottom: 4px; }
+    .status-card p { font-size: 13px; opacity: 0.9; }
+
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .stat-num { font-size: 28px; font-weight: bold; color: #8b4513; }
+    .stat-label { font-size: 11px; color: #6b4c2a; margin-top: 4px; }
+
+    .perks { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .perks h3 { font-size: 15px; color: #2c1a0e; margin-bottom: 14px; font-weight: bold; }
+    .perk-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+    .perk-icon { font-size: 20px; flex-shrink: 0; }
+    .perk-text { font-size: 13px; color: #2c1a0e; line-height: 1.4; }
+    .perk-text b { display: block; font-size: 14px; margin-bottom: 2px; }
+
+    .cancel-section { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .cancel-section h3 { font-size: 15px; color: #2c1a0e; margin-bottom: 8px; }
+    .cancel-section p { font-size: 12px; color: #aaa; margin-bottom: 16px; line-height: 1.5; }
+    
+    .btn-cancel { width: 100%; background: transparent; border: 1.5px solid #e74c3c; color: #e74c3c; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit; }
+    .btn-back { width: 100%; background: linear-gradient(135deg, #8b4513, #5c2d0a); color: white; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: bold; cursor: pointer; font-family: inherit; margin-bottom: 12px; }
+
+    .loading { text-align: center; padding: 40px; color: #6b4c2a; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🕵️ Моя подписка</h1>
+    <p>Управление и статистика</p>
+  </div>
+
+  <div id="content" class="loading">Загружаем данные...</div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    tg?.ready();
+    tg?.expand();
+
+    const BASE_URL = 'https://inspiring-friendship-production-bf42.up.railway.app';
+
+    function headers() {
+      return {
+        'Content-Type': 'application/json',
+        'X-Init-Data': tg?.initData ?? '',
+      };
+    }
+
+    async function load() {
+      try {
+        const [statusRes, progressRes] = await Promise.all([
+          fetch(`${BASE_URL}/api/payment/status`, { headers: headers() }),
+          fetch(`${BASE_URL}/api/progress/stats`, { headers: headers() }).catch(() => null),
+        ]);
+
+        const status = await statusRes.json();
+        const progress = progressRes?.ok ? await progressRes.json() : null;
+
+        const exp = status.subscription_expires_at
+          ? new Date(status.subscription_expires_at).toLocaleDateString('ru-RU')
+          : null;
+
+        const completed = progress?.completed ?? 0;
+        const started = progress?.started ?? 0;
+
+        document.getElementById('content').innerHTML = `
+          <div class="status-card">
+            <div class="icon">✅</div>
+            <h2>Подписка активна</h2>
+            <p>Действует до ${exp || '—'}</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-num">${completed}</div>
+              <div class="stat-label">Дел раскрыто</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">${started}</div>
+              <div class="stat-label">Дел начато</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">50+</div>
+              <div class="stat-label">Дел доступно</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">30</div>
+              <div class="stat-label">Новых в месяц</div>
+            </div>
+          </div>
+
+          <div class="perks">
+            <h3>🔓 Что даёт подписка:</h3>
+            <div class="perk-item">
+              <div class="perk-icon">🗂</div>
+              <div class="perk-text"><b>50+ детективных дел</b>От простых до сложных — на любой вкус</div>
+            </div>
+            <div class="perk-item">
+              <div class="perk-icon">📅</div>
+              <div class="perk-text"><b>30 новых дел каждый месяц</b>Всегда свежие расследования</div>
+            </div>
+            <div class="perk-item">
+              <div class="perk-icon">🏆</div>
+              <div class="perk-text"><b>Полная статистика</b>Следи за своим прогрессом детектива</div>
+            </div>
+            <div class="perk-item">
+              <div class="perk-icon">⚡️</div>
+              <div class="perk-text"><b>Без рекламы</b>Чистый игровой процесс</div>
+            </div>
+          </div>
+
+          <div class="cancel-section">
+            <h3>Управление подпиской</h3>
+            <p>После отмены подписка останется активной до ${exp || 'конца периода'}. Новых списаний не будет.</p>
+            <button class="btn-back" onclick="window.location.href='index.html'">▶️ Продолжить играть</button>
+            <button class="btn-cancel" onclick="confirmCancel()">Отменить автопродление</button>
+          </div>
+        `;
+      } catch(e) {
+        document.getElementById('content').innerHTML = `<p style="text-align:center;color:red">Ошибка загрузки: ${e.message}</p>`;
+      }
+    }
+
+    function confirmCancel() {
+      if (tg) {
+        tg.showConfirm(
+          'Вы уверены что хотите отменить автопродление? Подписка останется активной до конца периода.',
+          (confirmed) => {
+            if (confirmed) {
+              window.location.href = 'https://t.me/bukvennoe_delo_support';
+            }
+          }
+        );
+      } else {
+        if (confirm('Отменить автопродление подписки?')) {
+          window.location.href = 'https://t.me/bukvennoe_delo_support';
+        }
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>

@@ -274,10 +274,10 @@ async function checkStatus() {
       document.getElementById('plans').style.display = 'none';
       btn.style.display = 'none';
       box.innerHTML = `
-        <div class="status-box" onclick="showCancelPopup()" style="cursor:pointer">
+        <div class="status-box" onclick="window.location.href='my-subscription.html'" style="cursor:pointer">
           <h3>✅ Подписка активна</h3>
           <p>Действует до ${exp}</p>
-          <p style="font-size:12px;color:#aaa;margin-top:4px">Нажмите чтобы управлять подпиской</p>
+          <p style="font-size:12px;color:#2e7d32;margin-top:6px;font-weight:600">⚙️ Управление подпиской →</p>
         </div>`;
     }
   } catch {}
