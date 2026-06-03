@@ -307,6 +307,13 @@ function goToManage() {
 }
 
 checkStatus();
+
+  // Фиксируем что пользователь увидел страницу со скидкой
+  fetch(`${BASE_URL}/api/payment/sale-seen`, {
+    method: 'POST',
+    headers: headers()
+  }).catch(() => {});
+
 </script>
 
 <script>

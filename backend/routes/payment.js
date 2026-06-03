@@ -236,6 +236,21 @@ router.post('/auto-renew', async (req, res) => {
   }
 });
 
+
+// Фиксируем что пользователь увидел скидку
+router.post('/sale-seen', authMiddleware, async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE users SET sale_seen_at = NOW(), sale_reminder_sent = FALSE
+       WHERE telegram_id = $1 AND (sale_seen_at IS NULL OR sale_seen_at < NOW() - INTERVAL '2 hours')`,
+      [req.user.telegram_id]
+    );
+    res.json({ ok: true });
+  } catch (e) {
+    res.json({ ok: false });
+  }
+});
+
 export default router;
 
 // Отмена автопродления

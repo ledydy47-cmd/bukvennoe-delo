@@ -71,3 +71,47 @@ for (const u of rows) {
 
 console.log(`\n✅ Напоминаний отправлено: ${ok}`);
 await pool.end();
+
+// Напоминание об истекающей скидке (за 15 минут до конца таймера)
+async function sendSaleReminders() {
+  try {
+    const { rows } = await pool.query(`
+      SELECT telegram_id, first_name
+      FROM users
+      WHERE sale_seen_at IS NOT NULL
+        AND sale_seen_at <= NOW() - INTERVAL '45 minutes'
+        AND sale_reminder_sent = FALSE
+        AND (subscription_type IS NULL OR subscription_type = 'none')
+    `);
+
+    for (const user of rows) {
+      const name = user.first_name || 'Детектив';
+      const text = `⏰ ${name}, скидка 50% заканчивается через 15 минут!\n\nПосле этого цена вернётся к 199 ₽/мес. Успей оформить подписку сейчас 👇`;
+      
+      await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: user.telegram_id,
+          text,
+          reply_markup: {
+            inline_keyboard: [[
+              { text: '🔓 Открыть все дела за 99 ₽', url: `${process.env.WEBAPP_URL}/subscribe.html` }
+            ]]
+          }
+        })
+      });
+
+      await pool.query(
+        'UPDATE users SET sale_reminder_sent = TRUE WHERE telegram_id = $1',
+        [user.telegram_id]
+      );
+
+      console.log(`[sale-reminder] Отправлено: ${user.telegram_id}`);
+    }
+  } catch (e) {
+    console.error('[sale-reminder] Ошибка:', e.message);
+  }
+}
+
+await sendSaleReminders();
