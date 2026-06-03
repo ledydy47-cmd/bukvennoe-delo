@@ -271,13 +271,13 @@ async function checkStatus() {
       btn.style.display = 'none';
     } else if (data.subscription_type === 'monthly' && data.subscription_expires_at) {
       const exp = new Date(data.subscription_expires_at).toLocaleDateString('ru-RU');
-      // Показываем кнопку отмены для активных подписчиков
-      const cancelBtn = document.getElementById('cancelBtn');
-      if (cancelBtn) cancelBtn.style.display = 'block';
+      document.getElementById('plans').style.display = 'none';
+      btn.style.display = 'none';
       box.innerHTML = `
-        <div class="status-box">
+        <div class="status-box" onclick="showCancelPopup()" style="cursor:pointer">
           <h3>✅ Подписка активна</h3>
           <p>Действует до ${exp}</p>
+          <p style="font-size:12px;color:#aaa;margin-top:4px">Нажмите чтобы управлять подпиской</p>
         </div>`;
     }
   } catch {}
@@ -316,6 +316,33 @@ checkStatus();
   }
   update();
 })();
+</script>
+
+<!-- Popup отмены подписки -->
+<div id="cancelPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#fdf6e3;border-radius:20px;padding:28px 24px;margin:20px;max-width:360px;width:100%;text-align:center">
+    <div style="font-size:36px;margin-bottom:12px">⚙️</div>
+    <div style="font-size:18px;font-weight:bold;color:#2c1a0e;margin-bottom:8px">Управление подпиской</div>
+    <div style="font-size:14px;color:#6b4c2a;margin-bottom:20px;line-height:1.5">
+      Для отмены автопродления напишите в поддержку. Подписка останется активной до конца оплаченного периода.
+    </div>
+    <a href="https://t.me/bukvennoe_delo_support" style="display:block;background:linear-gradient(135deg,#8b4513,#5c2d0a);color:white;border-radius:12px;padding:14px;font-size:15px;font-weight:bold;text-decoration:none;margin-bottom:10px">
+      📩 Написать в поддержку
+    </a>
+    <button onclick="document.getElementById('cancelPopup').style.display='none'" 
+            style="width:100%;background:transparent;border:none;color:#aaa;font-size:13px;cursor:pointer;padding:8px">
+      Закрыть
+    </button>
+  </div>
+</div>
+
+<script>
+function showCancelPopup() {
+  document.getElementById('cancelPopup').style.display = 'flex';
+}
+document.getElementById('cancelPopup')?.addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
 </script>
 </body>
 </html>
