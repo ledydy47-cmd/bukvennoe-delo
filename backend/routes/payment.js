@@ -10,8 +10,8 @@ const YUKASSA_SECRET_KEY = process.env.YUKASSA_SECRET_KEY;
 const WEBAPP_URL = process.env.WEBAPP_URL;
 
 const PLANS = {
-  monthly:  { amount: '99.00', description: 'Буквенное дело — подписка на месяц',   save_payment: true  },
-  lifetime: { amount: '449.00', description: 'Буквенное дело — вечный доступ',        save_payment: false },
+  monthly:  { amount: '199.00', description: 'Буквенное дело — подписка на месяц' },
+  lifetime: { amount: '990.00', description: 'Буквенное дело — вечный доступ' },
 };
 
 function yukassaAuth() {
@@ -22,7 +22,6 @@ function yukassaAuth() {
 router.get('/status', authMiddleware, async (req, res) => {
   try {
     const user = req.user;
-    // Проверяем не истекла ли месячная подписка
     if (user.subscription_type === 'monthly' && user.subscription_expires_at) {
       if (new Date(user.subscription_expires_at) < new Date()) {
         await pool.query(
@@ -45,7 +44,6 @@ router.get('/status', authMiddleware, async (req, res) => {
 // ===== СОЗДАТЬ ПЛАТЁЖ =====
 router.post('/create', authMiddleware, async (req, res) => {
   try {
-    // Блокируем гостей — только реальные пользователи Telegram
     if (!req.user || req.user.id === 0) {
       return res.status(401).json({ error: 'Откройте приложение через Telegram' });
     }
@@ -60,32 +58,16 @@ router.post('/create', authMiddleware, async (req, res) => {
       amount: { value: p.amount, currency: 'RUB' },
       confirmation: {
         type: 'redirect',
-        return_url: `${WEBAPP_URL}/payment-success.html?plan=${plan}`,
+        return_url: `${WEBAPP_URL || 'https://bukvennoe-delo.vercel.app'}/payment-success.html?plan=${plan}`,
       },
       capture: true,
       description: p.description,
-      payment_method_types: ['bank_card', 'sbp'],
       metadata: {
         user_id:  String(req.user.id),
         plan:     plan,
         tg_id:    String(req.user.telegram_id),
       },
-      save_payment_method: true,
-      receipt: {
-        customer: {
-          email: 'noreply@bukvennoe-delo.ru',
-        },
-        items: [
-          {
-            description: p.description,
-            quantity: '1.00',
-            amount: { value: p.amount, currency: 'RUB' },
-            vat_code: 1,
-            payment_mode: plan === 'lifetime' ? 'full_payment' : 'full_payment',
-            payment_subject: 'service',
-          }
-        ]
-      }
+      save_payment_method: plan === 'monthly',
     };
 
     const response = await fetch('https://api.yookassa.ru/v3/payments', {
@@ -105,7 +87,6 @@ router.post('/create', authMiddleware, async (req, res) => {
       return res.status(500).json({ error: data.description || data.code || JSON.stringify(data) });
     }
 
-    // Сохраняем платёж в БД
     await pool.query(
       `INSERT INTO payments (user_id, payment_id, plan, amount, status, created_at)
        VALUES ($1, $2, $3, $4, 'pending', NOW())
@@ -118,21 +99,32 @@ router.post('/create', authMiddleware, async (req, res) => {
       confirmation_url: data.confirmation.confirmation_url,
     });
   } catch (e) {
-    console.error('Payment create error:', e.message, e.stack);
+    console.error('Payment create error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
 
 // ===== ВЕБХУК ОТ ЮКАССЫ =====
 router.post('/webhook', async (req, res) => {
+  // Отвечаем сразу — ЮКасса не будет ждать
+  res.json({ ok: true });
+
   try {
     const event = req.body;
-    console.log('ЮКасса вебхук:', event.event, event.object?.id);
+    console.log('💳 ЮКасса вебхук:', event.event, event.object?.id);
 
     if (event.event === 'payment.succeeded') {
       const payment = event.object;
-      const { user_id, plan } = payment.metadata;
+      const { user_id, plan, tg_id } = payment.metadata || {};
 
+      console.log('📦 Metadata:', { user_id, plan, tg_id });
+
+      if (!user_id || !plan) {
+        console.error('❌ Нет user_id или plan в metadata');
+        return;
+      }
+
+      // Активируем подписку
       if (plan === 'lifetime') {
         await pool.query(
           `UPDATE users SET subscription_type = 'lifetime', subscription_expires_at = NULL WHERE id = $1`,
@@ -145,7 +137,6 @@ router.post('/webhook', async (req, res) => {
           `UPDATE users SET subscription_type = 'monthly', subscription_expires_at = $1 WHERE id = $2`,
           [expires, user_id]
         );
-        // Сохраняем payment_method_id для автоплатежей
         if (payment.payment_method?.id) {
           await pool.query(
             `UPDATE users SET payment_method_id = $1 WHERE id = $2`,
@@ -154,127 +145,71 @@ router.post('/webhook', async (req, res) => {
         }
       }
 
+      console.log(`✅ Подписка активирована: user_id=${user_id}, plan=${plan}`);
+
       // Обновляем статус платежа
       await pool.query(
         `UPDATE payments SET status = 'succeeded' WHERE payment_id = $1`,
         [payment.id]
       );
 
-      // Аналитика
-      await pool.query(
-        `INSERT INTO analytics (user_id, event, meta) VALUES ($1, 'subscribe', $2)`,
-        [user_id, JSON.stringify({ plan })]
-      );
+      // Аналитика — только если user_id реальный (не 0)
+      const uid = parseInt(user_id);
+      if (uid && uid > 0) {
+        await pool.query(
+          `INSERT INTO analytics (user_id, event, meta) VALUES ($1, 'subscribe', $2)`,
+          [uid, JSON.stringify({ plan })]
+        ).catch(e => console.error('Analytics error (non-critical):', e.message));
+      }
+
+      // Уведомляем пользователя в Telegram
+      if (tg_id && process.env.BOT_TOKEN) {
+        const text = plan === 'monthly'
+          ? `✅ Подписка активирована!\n\nВсе дела открыты на 30 дней. Удачи, детектив! 🔍`
+          : `✅ Постоянный доступ активирован!\n\nВсе дела открыты навсегда. Удачи, детектив! 🔍`;
+        await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: tg_id, text }),
+        }).catch(e => console.error('Telegram notify error:', e.message));
+      }
     }
 
     if (event.event === 'payment.canceled') {
       await pool.query(
         `UPDATE payments SET status = 'canceled' WHERE payment_id = $1`,
         [event.object.id]
-      );
+      ).catch(e => console.error('Cancel update error:', e.message));
     }
 
-    res.json({ ok: true });
   } catch (e) {
-    console.error('Webhook error:', e);
+    console.error('❌ Webhook error:', e.message, e.stack);
+  }
+});
+
+// ===== СТАТУС ПОДПИСКИ (публичный) =====
+router.get('/check', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user || req.user.id === 0) return res.json({ active: false });
+    const now = new Date();
+    const active = req.user.subscription_type === 'lifetime' ||
+      (req.user.subscription_type === 'monthly' && new Date(req.user.subscription_expires_at) > now);
+    res.json({ active, type: req.user.subscription_type, expires_at: req.user.subscription_expires_at });
+  } catch (e) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// ===== АВТОПРОДЛЕНИЕ (запускать крон каждый день) =====
-router.post('/auto-renew', async (req, res) => {
-  if (req.headers['x-admin-key'] !== process.env.ADMIN_KEY) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-  try {
-    // Находим пользователей у кого подписка истекает в течение 1 дня
-    const expiring = await pool.query(`
-      SELECT id, payment_method_id, telegram_id
-      FROM users
-      WHERE subscription_type = 'monthly'
-        AND subscription_expires_at < NOW() + INTERVAL '1 day'
-        AND payment_method_id IS NOT NULL
-    `);
-
-    let renewed = 0;
-    for (const user of expiring.rows) {
-      try {
-        const idempotenceKey = crypto.randomUUID();
-        const response = await fetch('https://api.yookassa.ru/v3/payments', {
-          method: 'POST',
-          headers: {
-            'Authorization':   yukassaAuth(),
-            'Content-Type':    'application/json',
-            'Idempotence-Key': idempotenceKey,
-          },
-          body: JSON.stringify({
-            amount: { value: '199.00', currency: 'RUB' },
-            capture: true,
-            payment_method_id: user.payment_method_id,
-            description: 'Буквенное дело — автопродление подписки',
-            metadata: { user_id: String(user.id), plan: 'monthly', tg_id: String(user.telegram_id) },
-          }),
-        });
-        const data = await response.json();
-        if (data.status === 'succeeded') {
-          const expires = new Date();
-          expires.setDate(expires.getDate() + 30);
-          await pool.query(
-            `UPDATE users SET subscription_expires_at = $1 WHERE id = $2`,
-            [expires, user.id]
-          );
-          renewed++;
-        }
-      } catch (err) {
-        console.error(`Ошибка автопродления для user ${user.id}:`, err.message);
-      }
-    }
-    res.json({ ok: true, renewed });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-
-// Фиксируем что пользователь увидел скидку
-router.post('/sale-seen', authMiddleware, async (req, res) => {
-  try {
-    await pool.query(
-      `UPDATE users SET sale_seen_at = NOW(), sale_reminder_sent = FALSE
-       WHERE telegram_id = $1 AND (sale_seen_at IS NULL OR sale_seen_at < NOW() - INTERVAL '2 hours')`,
-      [req.user.telegram_id]
-    );
-    res.json({ ok: true });
-  } catch (e) {
-    res.json({ ok: false });
-  }
-});
-
-export default router;
-
-// Отмена автопродления
+// ===== ОТМЕНА АВТОПРОДЛЕНИЯ =====
 router.post('/cancel', authMiddleware, async (req, res) => {
   try {
-    if (!req.user || req.user.id === 0) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    // Убираем payment_method_id чтобы автопродление не сработало
-    await pool.query(
-      `UPDATE users SET payment_method_id = NULL WHERE id = $1`,
-      [req.user.id]
-    );
-
-    // Логируем отмену
-    await pool.query(
-      `INSERT INTO analytics (user_id, event, meta) VALUES ($1, $2, $3)`,
-      [req.user.id, 'subscription_cancelled', '{}']
-    );
-
+    if (!req.user || req.user.id === 0) return res.status(401).json({ error: 'Unauthorized' });
+    await pool.query(`UPDATE users SET payment_method_id = NULL WHERE id = $1`, [req.user.id]);
     res.json({ ok: true, message: 'Автопродление отменено' });
   } catch(e) {
     console.error(e);
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+export default router;

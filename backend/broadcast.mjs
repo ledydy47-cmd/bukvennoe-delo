@@ -1,48 +1,46 @@
 import pg from 'pg';
-const { Pool } = pg;
-
-const pool = new Pool({
-  connectionString: 'postgresql://postgres:tDFjhDkshRLfWrvzvzZhLGbimNKiJOzb@zephyr.proxy.rlwy.net:29902/railway'
-});
 
 const BOT_TOKEN = '8992101075:AAFWt9SedBNz9h-cHurGr9_JzjjeGirGz0A';
 const WEBAPP_URL = 'https://bukvennoe-delo.vercel.app';
+const pool = new pg.Pool({ connectionString: 'postgresql://postgres:tDFjhDkshRLfWrvzvzZhLGbimNKiJOzb@zephyr.proxy.rlwy.net:29902/railway' });
 
-const { rows } = await pool.query(`SELECT telegram_id, first_name FROM users WHERE telegram_id IS NOT NULL`);
+const { rows } = await pool.query(`SELECT telegram_id, first_name FROM users WHERE subscription_type = 'free'`);
 
-console.log(`📨 Рассылаю ${rows.length} пользователям...`);
-let ok = 0, fail = 0;
+console.log(`Отправляем ${rows.length} пользователям...`);
 
-for (const u of rows) {
+let success = 0;
+let failed = 0;
+
+for (const user of rows) {
+  const name = user.first_name || 'Детектив';
   try {
     const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chat_id: u.telegram_id,
-        parse_mode: 'Markdown',
-        text: `🕵️ *${u.first_name || 'Детектив'}, оплата в Буквенном деле теперь доступна!*\n\n` +
-              `Ты уже знаком с игрой — теперь можно открыть все 50+ дел.\n\n` +
-              `В честь запуска оплаты дарим скидку *50%* только на *24 часа*:\n\n` +
-              `💳 Месяц: ~~199 ₽~~ → *99 ₽*\n` +
-              `♾️ Навсегда: ~~990 ₽~~ → *449 ₽*\n\n` +
-              `Успей до конца акции — потом цена вернётся 🔒`,
+        chat_id: user.telegram_id,
+        text: `🕵️ ${name}, нераскрытые дела ждут тебя...\n\nВ архиве скопились новые загадочные преступления — убийства, кражи, исчезновения. Каждое дело уникально и ждёт именно тебя.\n\nОткрой все дела со скидкой 50% 👇`,
         reply_markup: {
-          inline_keyboard: [
-            [{ text: '🔥 Открыть все дела со скидкой', url: `${WEBAPP_URL}/subscribe.html` }]
-          ]
+          inline_keyboard: [[
+            { text: '🔓 Открыть все дела за 99 ₽', url: `${WEBAPP_URL}/subscribe.html` }
+          ]]
         }
       })
     });
-    const d = await res.json();
-    if (d.ok) { ok++; console.log(`✅ ${u.first_name || u.telegram_id}`); }
-    else { fail++; console.log(`❌ ${u.telegram_id}: ${d.description}`); }
-    await new Promise(r => setTimeout(r, 100));
-  } catch(e) {
-    fail++;
-    console.log(`❌ ${u.telegram_id}: ${e.message}`);
+    const data = await res.json();
+    if (data.ok) {
+      success++;
+      console.log(`✅ ${user.telegram_id} (${name})`);
+    } else {
+      failed++;
+      console.log(`❌ ${user.telegram_id} (${name}): ${data.description}`);
+    }
+  } catch (e) {
+    failed++;
+    console.log(`❌ ${user.telegram_id}: ${e.message}`);
   }
+  await new Promise(r => setTimeout(r, 100));
 }
 
-console.log(`\n📊 Итого: ✅ Отправлено: ${ok}, ❌ Ошибок: ${fail}`);
+console.log(`\nГотово! ✅ ${success} отправлено, ❌ ${failed} ошибок`);
 await pool.end();
