@@ -200,7 +200,7 @@ hr { border: none; border-top: 2px solid #2c1a0e; margin: 16px 0; }
 </div>
 
 <script>
-const BASE_URL = 'https://inspiring-friendship-production-bf42.up.railway.app';
+const BASE_URL = 'https://bukvennoe-delo.onrender.com';
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
@@ -238,7 +238,7 @@ async function startPayment() {
   btn.textContent = '⏳ Создаём платёж...';
 
   try {
-    const res = await fetch('https://inspiring-friendship-production-bf42.up.railway.app/api/payment/create', {
+    const res = await fetch('https://bukvennoe-delo.onrender.com/api/payment/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
