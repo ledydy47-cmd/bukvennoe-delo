@@ -70,7 +70,7 @@ router.get('/', authMiddleware, async (req, res) => {
     const result = await pool.query(`
       SELECT
         c.id, c.title, c.case_number, c.difficulty, c.is_free,
-        up.status, up.found_words, up.completed_at, up.hint_used
+        up.status, up.found_words, up.hint_used, up.updated_at
       FROM cases c
       LEFT JOIN user_progress up
         ON up.case_id = c.id AND up.user_id = $1
